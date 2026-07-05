@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Lee Hwy · Pre-Rock Field Capture</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Pre-Rock">
+<script>if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){});});}</script>
+<style>
+  :root{
+    --green:#2f7d4f; --green-d:#245f3c; --bg:#f4f6f4; --card:#ffffff;
+    --ink:#1c2620; --muted:#5f6b63; --line:#e2e7e2;
+    --qa:#2f7d4f; --field:#4da2f8; --attn:#e0912d; --client:#8b5cf6; --na:#9aa4a0;
+    --shadow:0 2px 10px rgba(20,40,25,.08);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    -webkit-text-size-adjust:100%}
+  body{padding-bottom:env(safe-area-inset-bottom)}
+  .hidden{display:none !important}
+  /* Header */
+  header{position:sticky;top:0;z-index:20;background:var(--green);color:#fff;
+    padding:calc(10px + env(safe-area-inset-top)) 16px 10px;display:flex;align-items:center;gap:12px;box-shadow:var(--shadow)}
+  header .title{font-weight:700;font-size:16px;line-height:1.15;flex:1}
+  header .title small{display:block;font-weight:500;opacity:.85;font-size:12px}
+  header button{background:rgba(255,255,255,.16);border:0;color:#fff;font-weight:600;
+    padding:9px 14px;border-radius:10px;font-size:14px}
+  .progwrap{height:6px;background:rgba(0,0,0,.08)}
+  .progbar{height:6px;background:var(--green-d);width:0;transition:width .25s}
+  /* Layout */
+  main{max-width:820px;margin:0 auto;padding:16px}
+  .card{background:var(--card);border-radius:16px;box-shadow:var(--shadow);padding:18px;margin-bottom:16px}
+  .sect{display:inline-block;font-size:12px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;
+    color:var(--green);background:#e8f2ec;padding:4px 10px;border-radius:999px;margin-bottom:10px}
+  .code{font-size:13px;color:var(--muted);font-weight:600;margin-bottom:2px}
+  h1.itemtitle{font-size:22px;line-height:1.2;margin:2px 0 12px}
+  .label{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin:14px 0 6px}
+  .capture-txt{font-size:15.5px;line-height:1.5}
+  .standard{font-size:14.5px;line-height:1.5;background:#f7faf8;border-left:3px solid var(--green);
+    padding:10px 12px;border-radius:8px;color:#2a3830}
+  .advisory{background:#fff7e9;border-left-color:var(--attn);color:#6b4e17}
+  /* Photos */
+  .photos{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:10px;margin-top:8px}
+  .thumb{position:relative;aspect-ratio:1;border-radius:10px;overflow:hidden;background:#eee;border:1px solid var(--line)}
+  .thumb img{width:100%;height:100%;object-fit:cover;display:block}
+  .thumb .del{position:absolute;top:4px;right:4px;background:rgba(0,0,0,.6);color:#fff;border:0;
+    width:26px;height:26px;border-radius:50%;font-size:15px;line-height:1;display:flex;align-items:center;justify-content:center}
+  .addphoto{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;
+    border:2px dashed var(--green);color:var(--green);background:#f2f8f4;border-radius:12px;
+    padding:16px;font-size:16px;font-weight:700;margin-top:8px}
+  .addphoto svg{width:22px;height:22px}
+  input[type=file]{display:none}
+  textarea{width:100%;border:1px solid var(--line);border-radius:12px;padding:12px;font-size:16px;
+    font-family:inherit;min-height:70px;resize:vertical;background:#fff;color:var(--ink)}
+  /* Status buttons */
+  .statusgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}
+  .statusgrid .sbtn{padding:14px 10px;border-radius:12px;border:2px solid var(--line);background:#fff;
+    font-size:15px;font-weight:700;color:var(--ink);text-align:left;display:flex;flex-direction:column;gap:2px}
+  .sbtn small{font-weight:500;font-size:11.5px;color:var(--muted)}
+  .sbtn .dot{width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:6px}
+  .sbtn.qa .dot{background:var(--qa)} .sbtn.field .dot{background:var(--field)}
+  .sbtn.attn .dot{background:var(--attn)} .sbtn.client .dot{background:var(--client)}
+  .sbtn.na .dot{background:var(--na)}
+  .sbtn.sel.qa{border-color:var(--qa);background:#eaf4ee}
+  .sbtn.sel.field{border-color:var(--field);background:#eaf3fd}
+  .sbtn.sel.attn{border-color:var(--attn);background:#fdf3e5}
+  .sbtn.sel.client{border-color:var(--client);background:#f3eefe}
+  .sbtn.sel.na{border-color:var(--na);background:#f0f2f1}
+  .sbtn.full{grid-column:1 / -1}
+  /* Nav */
+  .nav{position:sticky;bottom:0;z-index:15;background:var(--card);border-top:1px solid var(--line);
+    display:flex;align-items:center;gap:12px;padding:10px 16px calc(10px + env(safe-area-inset-bottom));max-width:820px;margin:0 auto}
+  .nav button{flex:1;padding:15px;border-radius:12px;border:0;font-size:16px;font-weight:700}
+  .nav .prev{background:#eef1ee;color:var(--ink)}
+  .nav .next{background:var(--green);color:#fff}
+  .nav .counter{flex:0 0 auto;font-size:14px;color:var(--muted);font-weight:600;min-width:64px;text-align:center}
+  /* Intro / list / review */
+  .btn-primary{background:var(--green);color:#fff;border:0;padding:16px;border-radius:12px;font-size:17px;font-weight:700;width:100%}
+  .btn-ghost{background:#eef1ee;color:var(--ink);border:0;padding:14px;border-radius:12px;font-size:15px;font-weight:700;width:100%}
+  .listrow{display:flex;align-items:center;gap:12px;padding:12px 6px;border-bottom:1px solid var(--line)}
+  .listrow:last-child{border-bottom:0}
+  .listrow .n{flex:0 0 30px;height:30px;border-radius:50%;background:#eef1ee;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:var(--muted)}
+  .listrow .meta{flex:1;min-width:0}
+  .listrow .meta b{display:block;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .listrow .meta span{font-size:12.5px;color:var(--muted)}
+  .chip{flex:0 0 auto;font-size:11px;font-weight:700;padding:4px 8px;border-radius:999px;color:#fff}
+  .chip.none{background:#c8d0cb;color:#465049}
+  .chip.qa{background:var(--qa)} .chip.field{background:var(--field)}
+  .chip.attn{background:var(--attn)} .chip.client{background:var(--client)} .chip.na{background:var(--na)}
+  .pcount{flex:0 0 auto;font-size:12px;color:var(--muted);font-weight:600}
+  .summary{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:6px 0 14px}
+  .stat{background:#f7faf8;border-radius:12px;padding:12px;text-align:center}
+  .stat b{display:block;font-size:26px;color:var(--green)} .stat span{font-size:12px;color:var(--muted)}
+  .clientitem{background:#f3eefe;border-radius:10px;padding:10px 12px;margin-bottom:8px;font-size:14px}
+  .clientitem b{color:#5b3fb0}
+  .batchbox{margin-top:16px;background:#f2f8f4;border:1px solid #d6e6dc;border-radius:14px;padding:14px}
+  .batchhead{font-weight:700;font-size:14px;color:var(--green-d)}
+  .batchsub{font-size:12.5px;color:var(--muted);margin:4px 0 10px}
+  .btn-batch{width:100%;background:var(--green);color:#fff;border:0;padding:14px;border-radius:12px;font-size:16px;font-weight:700}
+  .batchrow{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}
+  .batchrow:last-child{border-bottom:0}
+  .batchrow .bmeta{flex:1;min-width:0}
+  .batchrow .bmeta b{font-size:14.5px}
+  .batchrow .bmeta span{display:block;font-size:12px;color:var(--muted)}
+  .btn-send-sm{flex:0 0 auto;background:var(--green);color:#fff;border:0;padding:11px 16px;border-radius:10px;font-size:14px;font-weight:700}
+  .btn-send-sm.sent{background:#eaf4ee;color:var(--green-d);border:1px solid #cfe6d8}
+  .banner{font-size:13px;color:var(--muted);line-height:1.5;margin-top:8px}
+  .toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%);background:#1c2620;color:#fff;
+    padding:12px 18px;border-radius:12px;font-size:14px;z-index:50;box-shadow:var(--shadow);opacity:0;transition:opacity .2s;pointer-events:none;max-width:90%}
+  .toast.show{opacity:1}
+  a.tw{color:var(--green);font-size:13px;text-decoration:none;font-weight:600}
+  .lock{position:fixed;inset:0;z-index:100;background:var(--green);display:flex;align-items:center;justify-content:center;padding:24px}
+  .lock.hidden{display:none}
+  .lockcard{background:#fff;border-radius:18px;padding:26px 22px;max-width:360px;width:100%;text-align:center;box-shadow:var(--shadow)}
+  .locklogo{font-size:34px}
+  .lockcard h1{color:var(--green-d);font-size:20px;margin:6px 0 4px}
+  .lockcard p{color:var(--muted);font-size:14px;margin:0 0 16px}
+  .lockcard input{width:100%;border:1px solid var(--line);border-radius:12px;padding:14px;font-size:17px;text-align:center;letter-spacing:.06em}
+  .lockcard button{width:100%;background:var(--green);color:#fff;border:0;padding:14px;border-radius:12px;font-size:16px;font-weight:700;margin-top:12px}
+  .lockmsg{color:#c0392b;font-size:13px;margin-top:10px;min-height:16px}
+</style>
+</head>
+<body>
+
+<div id="lockScreen" class="lock">
+  <div class="lockcard">
+    <div class="locklogo">🔒</div>
+    <h1>Lee Hwy Pre-Rock</h1>
+    <p>Enter the team passcode to open the field app.</p>
+    <input id="lockInput" type="password" inputmode="text" autocomplete="off" placeholder="Passcode" onkeydown="if(event.key==='Enter')tryUnlock()">
+    <button onclick="tryUnlock()">Unlock</button>
+    <div id="lockMsg" class="lockmsg"></div>
+  </div>
+</div>
+
+<header>
+  <div class="title">Lee Hwy · Pre-Rock <small id="hsub">Post-insulation / pre-drywall field capture</small></div>
+  <button id="reviewBtn" onclick="showReview()">Review &amp; Send</button>
+</header>
+<div class="progwrap"><div class="progbar" id="progbar"></div></div>
+
+<!-- INTRO -->
+<main id="introScreen">
+  <div class="card">
+    <div class="sect">Centerville Dunkin</div>
+    <h1 class="itemtitle" style="margin-bottom:6px">Pre-Rock Field Walk</h1>
+    <div class="banner">13839 Lee Hwy, Centerville, VA 20121 · EarthCraft Light Commercial (ECLC v2.2)</div>
+    <div class="label">Inspector</div>
+    <input id="inspector" type="text" placeholder="Your name" style="width:100%;border:1px solid var(--line);border-radius:12px;padding:12px;font-size:16px">
+    <div class="label" style="margin-top:16px">How this works</div>
+    <div class="capture-txt">You'll go through <b id="introCount">the</b> applicable pre-rock items one at a time. For each: read what to capture, <b>take photos right here</b> (they're auto-filed to the right Teamwork task — no labeling), add a quick note, and set the <b>status</b> (field reviewed / needs attention / client must provide / N/A). Everything saves as you go, even offline.</div>
+    <div class="standard" style="margin-top:14px">When you're done, tap <b>Review &amp; Send</b> and share the bundle back to the office. EOS posts the photos + comments to Teamwork and moves each task.</div>
+  </div>
+  <button class="btn-primary" onclick="startWalk()">Start field walk →</button>
+  <div style="height:14px"></div>
+  <button class="btn-ghost" onclick="showList()">Jump to a specific item</button>
+</main>
+
+<!-- ITEM -->
+<main id="itemScreen" class="hidden">
+  <div class="card" id="itemCard"><!-- filled by render --></div>
+</main>
+<div class="nav hidden" id="itemNav">
+  <button class="prev" onclick="go(-1)">‹ Prev</button>
+  <div class="counter" id="counter">1 / 1</div>
+  <button class="next" onclick="go(1)">Next ›</button>
+</div>
+
+<!-- LIST -->
+<main id="listScreen" class="hidden">
+  <div class="card">
+    <h1 class="itemtitle" style="font-size:19px">All items</h1>
+    <div id="listBody"></div>
+  </div>
+  <button class="btn-ghost" onclick="backFromList()">← Back</button>
+</main>
+
+<!-- REVIEW -->
+<main id="reviewScreen" class="hidden">
+  <div class="card">
+    <h1 class="itemtitle" style="font-size:20px">Review &amp; Send</h1>
+    <div class="summary" id="reviewSummary"></div>
+    <div id="incompleteWrap"></div>
+    <div class="label">Send by batch (recommended)</div>
+    <div id="batchList"></div>
+    <div class="label" style="margin-top:16px">Client / project-team action list</div>
+    <div id="clientList"></div>
+    <div class="label" style="margin-top:14px">Overall site note (optional)</div>
+    <textarea id="siteNote" placeholder="Anything the office should know about this visit…"></textarea>
+  </div>
+  <button class="btn-primary" onclick="exportBundle()">📤 Send everything at once</button>
+  <div style="height:12px"></div>
+  <button class="btn-ghost" onclick="downloadBundle()">Download full .zip instead</button>
+  <div style="height:12px"></div>
+  <button class="btn-ghost" onclick="hideReview()">← Keep editing</button>
+  <div class="banner" style="text-align:center;margin-top:14px">Photos never leave this iPad until you tap Send. No Teamwork login needed.</div>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================ DATA ============================ */
+const PROJECT = {
+  name:"Centerville Dunkin Lee Hwy", projectId:1039453,
+  address:"13839 Lee Hwy, Centerville, VA 20121",
+  program:"ECLC v2.2", stage:"Post-insulation / pre-drywall (pre-rock)"
+};
+const TW="https://ecovativeenergy.teamwork.com/app/tasks/";
+// status -> board column mapping (Teamwork workflow 49174)
+const COLUMNS = {
+  qa:     {id:306997, name:"Reviewed/completed/ready for QA"},
+  field:  {id:306996, name:"Field Reviewed/currently compliant"},
+  attn:   {id:307704, name:"Reviewed/needs attention"},
+  client: {id:null,   name:"Client/team to provide (flag)"},
+  na:     {id:308458, name:"Removed/de-selected"}
+};
+const ITEMS = [
+ {c:"Insulation & Envelope", code:"BE R2", ids:[39265598], t:"Insulation coverage — Grade I",
+  cap:"Shoot EVERY wall & ceiling cavity. Close-ups at narrow cavities and anywhere insulation meets plumbing/electrical. Band/rim joists. Any thermal-break board. Sealed chases. Cantilevers/overhangs. If attic is open: attic card + depth ruler.",
+  std:"Grade I required: continuous, no gaps/voids/compression, in direct contact with the air barrier. Band/rim joists ≥ R-13. Thermal break ≥ R-3 where applicable."},
+ {c:"Insulation & Envelope", code:"BE R1", ids:[39265597], t:"Closed crawlspace details",
+  cap:"If crawlspace: sealed penetrations, termite shield / sill seal at stem-wall to bottom-plate, 6-mil ground vapor barrier lapped 6\" up the wall, crawl-wall insulation, 3\" termite inspection gap, sealed band joists. (No crawlspace → mark N/A.)",
+  std:"No venting; all penetrations sealed. Crawl-wall continuous insulation R-9.5 (CZ4). Band joist R-13."},
+ {c:"Insulation & Envelope", code:"BE 6", ids:[39265608], t:"Slab-edge / foundation-wall insulation",
+  cap:"Insulation at slab edge / foundation wall, extent down toward frost line, ½\" expansion joints at contiguous slabs.",
+  std:"Minimum R-4 thermal break down to frost line; ½\" expansion joints between conditioned/unconditioned slabs."},
+ {c:"Insulation & Envelope", code:"RE 2H", ids:[39265537], t:"Insulation recycled content",
+  cap:"Photograph the insulation product labels / bags / packaging showing manufacturer + recycled-content %. Do this before packaging is hauled off.",
+  std:"Aggregate envelope insulation ≥ 50% recycled content (documented via calculator)."},
+ {c:"Insulation & Envelope", code:"BE 8/9", ids:[39265610,39265611,39265597], t:"Window NFRC labels",
+  cap:"If windows are set: photograph each NFRC sticker (U-factor / SHGC / VLT) clearly — before anyone peels them off.",
+  std:"Leave NFRC labels for inspection or photograph. Target weighted U ≤ 0.38, SHGC ≤ 0.25."},
+
+ {c:"Air Sealing (advisory)", code:"BE R3", ids:[39265600], t:"Air-barrier continuity (advisory)", adv:true,
+  cap:"Advisory — the compliance test (blower door) happens at FINAL. But now is the only time to see it: photograph sealed top/bottom plates, penetrations (plumbing/elec/HVAC), rim joists, window/door rough openings, transitions. Flag gaps to the GC now.",
+  std:"Continuous air barrier feeding the final blower-door test ≤ 0.35 cfm/sf ELR75 (ASTM E779). Not a pre-rock deliverable — document + flag only."},
+
+ {c:"HVAC & Ductwork", code:"ES R3", ids:[39265629], t:"AHU & ducts inside thermal envelope",
+  cap:"Air handler location and duct routing relative to the conditioned envelope.",
+  std:"All AHUs and ductwork within the building thermal envelope (package unit: < 8 ft insulated duct exception)."},
+ {c:"HVAC & Ductwork", code:"ES R4", ids:[39265630], t:"Duct system build quality",
+  cap:"Trunk-and-branch layout, flex runs (length + support, no pinching), mastic-sealed seams/boots/plenums, duct insulation, outside-air duct + balancing damper.",
+  std:"Flex ≤ 10 ft pulled tight; no building cavities as ducts; ≥ R-3 supply-duct insulation; all seams sealed w/ mastic or UL181 butyl tape."},
+ {c:"HVAC & Ductwork", code:"IEQ R2", ids:[39265552], t:"Exhaust + automatic controls",
+  cap:"Exhaust fan locations / ducting and the control rough-in (timer for public restrooms / occupancy sensor for private).",
+  std:"Automatic shut-off controls on ALL exhaust when space unoccupied."},
+ {c:"HVAC & Ductwork", code:"IEQ R3.1", ids:[39265554], t:"HVAC filter MERV 8 + access",
+  cap:"Filter rack location and access clearance.",
+  std:"Minimum MERV 8; adequate filter-access clearance."},
+ {c:"HVAC & Ductwork", code:"IEQ R3.2", ids:[39265555], t:"Outside-air intake location",
+  cap:"Intake position relative to roof and any contaminant sources.",
+  std:"≥ 2 ft above roof; 15/25/30 ft from moderate/high/class-4 sources."},
+ {c:"HVAC & Ductwork", code:"IEQ R3.3", ids:[39265556], t:"No AHU/duct in garage or dock",
+  cap:"Confirm no air-handling equipment or ductwork in garage / parking / loading-dock areas.",
+  std:"Air handler + ductwork isolated from garage/parking/loading dock."},
+ {c:"HVAC & Ductwork", code:"IEQ R3.4", ids:[39265557], t:"AHU accessible + labeled",
+  cap:"Air handler access; labels on each AHU / condensing unit / thermostat.",
+  std:"Accessible and uniquely labeled."},
+ {c:"HVAC & Ductwork", code:"IEQ R5", ids:[39265564], t:"Combustion sealed / direct-vent",
+  cap:"Any gas-fired equipment: venting and combustion-air source.",
+  std:"Sealed / direct-vent with outside combustion air. No unvented or atmospherically-vented units."},
+ {c:"HVAC & Ductwork", code:"ES R2", ids:[39265628], t:"Primary heat not electric-resistance",
+  cap:"Heating equipment nameplate.",
+  std:"Electric resistance must not be the primary heating source."},
+ {c:"HVAC & Ductwork", code:"ES R5", ids:[39265631], t:"Equipment right-sizing (nameplate)",
+  cap:"Nameplate model + capacity of heating and cooling equipment (for cross-check vs load calc).",
+  std:"Cooling 95–115% of load (heat pump 125%), or variable-capacity system."},
+
+ {c:"Plumbing & Drainage", code:"DU 4C", ids:[39265548], t:"Cold-water pipe insulation",
+  cap:"Insulation on cold-water pipes inside walls / floor cavities. Photograph before rock — explicitly a photo-documented item.",
+  std:"Minimum ½\" insulation / R-2 on all cold-water pipes in conditioned + interstitial spaces."},
+ {c:"Plumbing & Drainage", code:"DU 4A", ids:[39265546], t:"Water-heater emergency drainage",
+  cap:"Condensate drain line + emergency drain pan.",
+  std:"Drain pan + line piped away from building."},
+ {c:"Plumbing & Drainage", code:"DU 4B", ids:[39265547], t:"HVAC condensate",
+  cap:"Condensate drain line + emergency drain pan.",
+  std:"Piped away from the building."},
+ {c:"Plumbing & Drainage", code:"WE R4", ids:[39265479], t:"Trap-seal primers non-potable",
+  cap:"Trap-seal primer water source.",
+  std:"Reclaimed / gray / waste water — NOT potable."},
+ {c:"Plumbing & Drainage", code:"ES 13", ids:[39265664], t:"Water-heater efficiency (if set)",
+  cap:"If water heater is installed: nameplate model + Energy Factor.",
+  std:"Meet minimum Energy Factor for installed water heaters."},
+ {c:"Plumbing & Drainage", code:"ES 14A", ids:[39265666], t:"Water-heater config (if set)",
+  cap:"If installed: location + type (central tank/tankless or point-of-use).",
+  std:"Per credit — location + efficiency documented."},
+
+ {c:"Framing", code:"RE 2E", ids:[39265534], t:"100% wood structural framing",
+  cap:"Framing shots showing all-wood structure.",
+  std:"All structural framing is wood."},
+ {c:"Framing", code:"DU 1", ids:[39265542], t:"Continuous termite shield",
+  cap:"Termite shield at all foundation-to-wood transitions (stem wall, piers, slab perimeter); seams + penetrations sealed.",
+  std:"Continuous, sealed barrier (also maintains envelope air-tightness)."},
+
+ {c:"IAQ During Construction", code:"IEQ R4.1", ids:[39265559], t:"IAQ — general site photos",
+  cap:"5+ general photos of this construction stage (IAQ plan posted, overall site conditions). Pre-rock counts as one of the two required photo stages.",
+  std:"Minimum 10 photos across two stages; IAQ plan established before dry-in."},
+ {c:"IAQ During Construction", code:"IEQ R4.2", ids:[39265560], t:"HVAC protection",
+  cap:"Ductwork / registers covered & sealed against dust. Note if the system has been run during construction.",
+  std:"Protect ductwork; install new MERV 8 filter before occupancy if system ran."},
+ {c:"IAQ During Construction", code:"IEQ R4.3", ids:[39265561], t:"Source control",
+  cap:"Materials staged/covered/elevated off the ground; confirm no paper-faced drywall installed before dry-in; no tobacco use.",
+  std:"Covered deliveries; SPF safe-install; NO paper-faced drywall until dried-in; no tobacco within 25 ft."},
+ {c:"IAQ During Construction", code:"IEQ R4.4", ids:[39265562], t:"Pathway interruption",
+  cap:"Work-area barriers or depressurization in place.",
+  std:"Interrupt contamination pathways (barriers / depressurize work area)."},
+ {c:"IAQ During Construction", code:"IEQ R4.5", ids:[39265563], t:"Housekeeping",
+  cap:"Clean site / debris control.",
+  std:"Housekeeping plan: cleaning schedule, wet mop, HEPA vacuum."}
+];
+
+/* Batches of 4 (merge a trailing 1-2 into the previous so each batch is 4-5). */
+const BATCHES = (function(){
+  const size=4, b=[];
+  for(let i=0;i<ITEMS.length;i+=size) b.push(ITEMS.map((_,k)=>k).slice(i,i+size));
+  if(b.length>1 && b[b.length-1].length<3){ const last=b.pop(); b[b.length-1]=b[b.length-1].concat(last); }
+  return b;
+})();
+function batchOf(i){ return BATCHES.findIndex(b=>b.includes(i)); }
+function batchRange(bi){ const b=BATCHES[bi]; return (b[0]+1)+"–"+(b[b.length-1]+1); }
+
+/* ============================ STATE + STORAGE ============================ */
+const LS_KEY="leehwy_prerock_v1";
+let state = loadState();
+let idx = 0;
+
+function blankState(){
+  const items={};
+  ITEMS.forEach(it=>{ items[it.code]={status:null, note:"", photos:[], sent:false}; });
+  return {inspector:"", siteNote:"", startedAt:new Date().toISOString(), items, batchSent:{}};
+}
+function loadState(){
+  try{ const s=JSON.parse(localStorage.getItem(LS_KEY)); if(s&&s.items){ // migrate missing items
+      ITEMS.forEach(it=>{ if(!s.items[it.code]) s.items[it.code]={status:null,note:"",photos:[],sent:false};
+        else if(s.items[it.code].sent===undefined) s.items[it.code].sent=false; });
+      if(!s.batchSent) s.batchSent={};
+      return s; } }catch(e){}
+  return blankState();
+}
+function saveState(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(state)); }catch(e){ toast("Storage full — send bundle soon"); } }
+
+/* IndexedDB for photo blobs */
+let _db=null;
+function db(){ return new Promise((res,rej)=>{
+  if(_db) return res(_db);
+  const r=indexedDB.open("leehwy_prerock",1);
+  r.onupgradeneeded=e=>{ e.target.result.createObjectStore("photos",{keyPath:"id"}); };
+  r.onsuccess=e=>{ _db=e.target.result; res(_db); };
+  r.onerror=e=>rej(e);
+});}
+async function putPhoto(id, blob){ const d=await db(); return new Promise((res,rej)=>{
+  const tx=d.transaction("photos","readwrite"); tx.objectStore("photos").put({id,blob});
+  tx.oncomplete=res; tx.onerror=rej; }); }
+async function getPhoto(id){ const d=await db(); return new Promise((res,rej)=>{
+  const tx=d.transaction("photos","readonly"); const rq=tx.objectStore("photos").get(id);
+  rq.onsuccess=()=>res(rq.result?rq.result.blob:null); rq.onerror=rej; }); }
+async function delPhoto(id){ const d=await db(); return new Promise((res,rej)=>{
+  const tx=d.transaction("photos","readwrite"); tx.objectStore("photos").delete(id);
+  tx.oncomplete=res; tx.onerror=rej; }); }
+
+/* ============================ SCREEN NAV ============================ */
+const screens=["introScreen","itemScreen","listScreen","reviewScreen"];
+function show(id){ screens.forEach(s=>document.getElementById(s).classList.toggle("hidden", s!==id));
+  document.getElementById("itemNav").classList.toggle("hidden", id!=="itemScreen");
+  window.scrollTo(0,0); }
+
+function startWalk(){ state.inspector=document.getElementById("inspector").value.trim(); saveState();
+  idx=0; show("itemScreen"); render(); }
+function showList(){ buildList(); show("listScreen"); }
+function backFromList(){ if(document.getElementById("inspector").value!==undefined){} show(idx>=0?"itemScreen":"introScreen"); render(); }
+function go(d){ const n=idx+d; if(n<0){ show("introScreen"); return;} if(n>=ITEMS.length){ showReview(); return;} idx=n; render(); }
+function jump(i){ idx=i; show("itemScreen"); render(); }
+
+/* ============================ RENDER ITEM ============================ */
+async function render(){
+  const it=ITEMS[idx]; const st=state.items[it.code]; const bi=batchOf(idx);
+  document.getElementById("counter").textContent=(idx+1)+" / "+ITEMS.length;
+  updateProgress();
+  const links=it.ids.map(id=>`<a class="tw" href="${TW}${id}" target="_blank">#${id}</a>`).join(" · ");
+  const card=document.getElementById("itemCard");
+  card.innerHTML=`
+    <div class="sect">${it.c}</div>
+    <div class="code">${it.code} &nbsp;·&nbsp; ${links}</div>
+    <h1 class="itemtitle">${it.t}</h1>
+    <div class="label">📷 What to capture</div>
+    <div class="capture-txt">${it.cap}</div>
+    <div class="label">Standard</div>
+    <div class="standard ${it.adv?'advisory':''}">${it.std}</div>
+
+    <div class="label">Photos <span id="pc" style="color:var(--green)"></span></div>
+    <div class="photos" id="photos"></div>
+    <label class="addphoto" for="fileInput">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+      Take / add photo
+    </label>
+    <input type="file" id="fileInput" accept="image/*" capture="environment" multiple onchange="onFiles(event)">
+
+    <div class="label">Note (optional)</div>
+    <textarea id="noteBox" placeholder="Observation, location, deficiency detail…" oninput="onNote(event)">${st.note||""}</textarea>
+
+    <div class="label">Set status</div>
+    <div class="statusgrid">
+      ${sbtn(it,'field','Field reviewed / compliant','Verified compliant on site')}
+      ${sbtn(it,'attn','Reviewed / needs attention','Deficiency or follow-up')}
+      ${sbtn(it,'client','Client must provide','Can\'t verify here → client list')}
+      ${sbtn(it,'na','N/A · not applicable','Nothing to capture here')}
+    </div>
+    <div class="banner">QA is set by the PM after review — not from the field.</div>
+
+    <div class="batchbox">
+      <div class="batchhead">📦 Batch ${bi+1} of ${BATCHES.length} · items ${batchRange(bi)}</div>
+      <div class="batchsub" id="batchsub"></div>
+      <button class="btn-batch" onclick="sendBatch(${bi})">📤 Send this batch</button>
+      <div class="banner" style="margin-top:8px">Send small batches as you go so a glitch never costs more than one batch. Works offline — send when you have signal.</div>
+    </div>
+  `;
+  updateBatchSub(bi);
+  await drawPhotos(it.code);
+}
+function batchStats(bi){
+  const b=BATCHES[bi]; let set=0,photos=0,sent=0;
+  b.forEach(i=>{ const s=state.items[ITEMS[i].code]; if(s.status)set++; photos+=s.photos.length; if(s.sent)sent++; });
+  return {n:b.length,set,photos,sent};
+}
+function updateBatchSub(bi){
+  const el=document.getElementById("batchsub"); if(!el) return;
+  const s=batchStats(bi); const done=state.batchSent[bi];
+  el.innerHTML = `${s.set}/${s.n} set · ${s.photos} photo${s.photos!==1?'s':''}` +
+    (done? ` · <b style="color:var(--green)">✔ sent ${new Date(done).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}</b>`:"");
+}
+function sbtn(it,key,label,sub,full){
+  const sel = state.items[it.code].status===key ? "sel":"";
+  return `<button class="sbtn ${key} ${sel} ${full?'full':''}" onclick="setStatus('${it.code}','${key}')">
+    <span><span class="dot"></span>${label}</span><small>${sub}</small></button>`;
+}
+function setStatus(code,key){
+  const st=state.items[code]; st.status = (st.status===key?null:key); saveState();
+  render(); toast(st.status?("Set → "+COLUMNS[key].name):"Cleared");
+}
+function onNote(e){ state.items[ITEMS[idx].code].note=e.target.value; saveState(); }
+
+async function drawPhotos(code){
+  const wrap=document.getElementById("photos"); if(!wrap) return;
+  const st=state.items[code]; wrap.innerHTML="";
+  document.getElementById("pc").textContent = st.photos.length?("· "+st.photos.length):"";
+  for(const p of st.photos){
+    const blob=await getPhoto(p.id); if(!blob) continue;
+    const url=URL.createObjectURL(blob);
+    const d=document.createElement("div"); d.className="thumb";
+    d.innerHTML=`<img src="${url}"><button class="del" onclick="removePhoto('${code}','${p.id}')">✕</button>`;
+    wrap.appendChild(d);
+  }
+}
+async function onFiles(e){
+  const files=[...e.target.files]; e.target.value="";
+  const st=state.items[ITEMS[idx].code];
+  for(const f of files){
+    try{
+      const blob=await downscale(f);
+      const id=ITEMS[idx].code.replace(/[^a-z0-9]/gi,'')+"_"+Date.now()+"_"+Math.random().toString(36).slice(2,6);
+      await putPhoto(id, blob);
+      st.photos.push({id, size:blob.size});
+    }catch(err){ toast("Couldn't add a photo"); }
+  }
+  saveState(); await drawPhotos(ITEMS[idx].code); updateProgress();
+  toast(files.length+" photo"+(files.length>1?"s":"")+" added");
+}
+async function removePhoto(code,id){
+  const st=state.items[code]; st.photos=st.photos.filter(p=>p.id!==id);
+  await delPhoto(id); saveState(); await drawPhotos(code); updateProgress();
+}
+function downscale(file){ return new Promise((res,rej)=>{
+  const img=new Image(); const u=URL.createObjectURL(file);
+  img.onload=()=>{ URL.revokeObjectURL(u);
+    const max=1920; let w=img.naturalWidth,h=img.naturalHeight;
+    if(w>max||h>max){ const s=Math.min(max/w,max/h); w=Math.round(w*s); h=Math.round(h*s); }
+    const c=document.createElement("canvas"); c.width=w; c.height=h;
+    c.getContext("2d").drawImage(img,0,0,w,h);
+    c.toBlob(b=> b?res(b):rej("noblob"), "image/jpeg", 0.82);
+  };
+  img.onerror=()=>{URL.revokeObjectURL(u);rej("imgerr");}; img.src=u;
+});}
+
+/* ============================ PROGRESS + LIST ============================ */
+function isDone(code){ return !!state.items[code].status; }
+function updateProgress(){
+  const done=ITEMS.filter(it=>isDone(it.code)).length;
+  document.getElementById("progbar").style.width=(done/ITEMS.length*100)+"%";
+}
+function chipFor(status){ const m={qa:"QA",field:"Field",attn:"Attn",client:"Client",na:"N/A"};
+  return status? `<span class="chip ${status}">${m[status]}</span>` : `<span class="chip none">—</span>`; }
+function buildList(){
+  const body=document.getElementById("listBody"); let html=""; let curSec="";
+  ITEMS.forEach((it,i)=>{
+    if(it.c!==curSec){ curSec=it.c; html+=`<div class="sect" style="margin-top:14px">${it.c}</div>`; }
+    const st=state.items[it.code];
+    html+=`<div class="listrow" onclick="jump(${i})">
+      <div class="n">${i+1}</div>
+      <div class="meta"><b>${it.code} · ${it.t}</b><span>${st.photos.length} photo${st.photos.length!==1?'s':''}${st.note?' · note':''}</span></div>
+      ${chipFor(st.status)}
+    </div>`;
+  });
+  body.innerHTML=html;
+}
+
+/* ============================ REVIEW ============================ */
+function showReview(){ document.getElementById("siteNote").value=state.siteNote||"";
+  buildReview(); show("reviewScreen"); }
+function hideReview(){ show("itemScreen"); render(); }
+document.getElementById("siteNote")?.addEventListener("input",e=>{state.siteNote=e.target.value;saveState();});
+
+function buildReview(){
+  const counts={qa:0,field:0,attn:0,client:0,na:0,none:0}; let photos=0;
+  ITEMS.forEach(it=>{ const st=state.items[it.code]; photos+=st.photos.length;
+    counts[st.status||"none"]++; });
+  document.getElementById("reviewSummary").innerHTML=`
+    <div class="stat"><b>${ITEMS.length-counts.none}/${ITEMS.length}</b><span>items set</span></div>
+    <div class="stat"><b>${photos}</b><span>photos</span></div>
+    <div class="stat"><b>${counts.field}</b><span>field compliant</span></div>
+    <div class="stat"><b>${counts.attn}</b><span>needs attention</span></div>`;
+  // incomplete warning
+  const inc=ITEMS.filter(it=>!state.items[it.code].status);
+  const iw=document.getElementById("incompleteWrap");
+  iw.innerHTML = inc.length? `<div class="standard advisory" style="margin-bottom:12px">
+    ⚠ ${inc.length} item${inc.length>1?'s':''} not set yet: ${inc.map(x=>x.code).join(", ")}.
+    You can still send — they'll show as pending.</div>`:"";
+  // batch list
+  const bl=document.getElementById("batchList");
+  if(bl){ bl.innerHTML = BATCHES.map((b,bi)=>{
+    const s=batchStats(bi); const sent=state.batchSent[bi];
+    const codes=b.map(i=>ITEMS[i].code).join(", ");
+    return `<div class="batchrow">
+      <div class="bmeta"><b>Batch ${bi+1}</b> · items ${batchRange(bi)}
+        <span>${codes}</span>
+        <span>${s.set}/${s.n} set · ${s.photos} photo${s.photos!==1?'s':''}${sent?' · ✔ sent':''}</span></div>
+      <button class="btn-send-sm ${sent?'sent':''}" onclick="sendBatch(${bi})">${sent?'Re-send':'Send'}</button>
+    </div>`;
+  }).join(""); }
+  // client list
+  const cl=ITEMS.filter(it=>state.items[it.code].status==="client");
+  const clBox=document.getElementById("clientList");
+  clBox.innerHTML = cl.length? cl.map(it=>`<div class="clientitem"><b>${it.code} · ${it.t}</b>${
+    state.items[it.code].note?"<br>"+esc(state.items[it.code].note):""}</div>`).join("")
+    : `<div class="banner">No client-provided items flagged yet.</div>`;
+}
+
+/* ============================ EXPORT (offline zip) ============================ */
+function esc(s){ return (s||"").replace(/[<>&]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[c])); }
+function sanitize(s){ return s.replace(/[^a-z0-9]+/gi,'-').replace(/^-|-$/g,''); }
+
+async function buildManifestAndZip(subset, meta){
+  subset = subset || ITEMS;
+  meta = meta || {partial:false, label:"full"};
+  const stamp=new Date();
+  const dateStr=stamp.toISOString().slice(0,10);
+  const files=[]; const manifestItems=[]; const clientActions=[];
+  for(const it of subset){
+    const gidx = ITEMS.indexOf(it)+1;               // global item number (unique across batches)
+    const st=state.items[it.code];
+    const photoNames=[];
+    let k=0;
+    for(const p of st.photos){
+      k++;
+      const blob=await getPhoto(p.id); if(!blob) continue;
+      const fname=`photos/${String(gidx).padStart(2,'0')}_${sanitize(it.code)}_${k}.jpg`;
+      const buf=new Uint8Array(await blob.arrayBuffer());
+      files.push({name:fname, data:buf});
+      photoNames.push(fname);
+    }
+    const col = st.status? COLUMNS[st.status] : null;
+    const rec={
+      order:gidx, code:it.code, title:it.t, section:it.c,
+      taskIds:it.ids, taskLinks:it.ids.map(id=>TW+id),
+      status:st.status||"unset",
+      targetColumn: col?col.name:null, targetColumnId: col?col.id:null,
+      note:st.note||"", photos:photoNames, advisory: !!it.adv
+    };
+    manifestItems.push(rec);
+    if(st.status==="client") clientActions.push(rec);
+  }
+  const manifest={
+    project:PROJECT, inspector:state.inspector||"", visitStage:PROJECT.stage,
+    generatedAt:stamp.toISOString(), siteNote:state.siteNote||"",
+    bundle:{partial:meta.partial, label:meta.label, itemCodes:subset.map(x=>x.code), totalItems:ITEMS.length},
+    columnMap:COLUMNS, items:manifestItems, clientActions
+  };
+  files.push({name:"manifest.json", data:strBytes(JSON.stringify(manifest,null,2))});
+  files.push({name:"REPORT.md", data:strBytes(buildReport(manifest))});
+  if(!meta.partial) files.push({name:"CLIENT-ACTION-LIST.md", data:strBytes(buildClientMd(manifest))});
+  const blob=zipStore(files);
+  const suffix = meta.partial ? ("_"+meta.label) : "";
+  return {blob, name:`LeeHwy_PreRock_${dateStr}${suffix}.zip`};
+}
+function buildReport(m){
+  let s=`# Lee Hwy Pre-Rock Field Report\n\n**Project:** ${m.project.name} — ${m.project.address}\n`;
+  s+=`**Stage:** ${m.visitStage}\n**Inspector:** ${m.inspector||"—"}\n**Captured:** ${m.generatedAt}\n`;
+  s+=`**Bundle:** ${m.bundle.partial?("PARTIAL — "+m.bundle.label+" ("+m.bundle.itemCodes.length+" of "+m.bundle.totalItems+" items: "+m.bundle.itemCodes.join(", ")+")"):"FULL — all items"}\n\n`;
+  if(m.bundle.partial) s+=`> Partial batch. Merge with the other batches from this visit (dedupe by task ID) before finalizing.\n\n`;
+  if(m.siteNote) s+=`**Site note:** ${m.siteNote}\n\n`;
+  s+=`---\n\nEOS: for each item below, post a Teamwork comment (note + status) with the listed photos attached, then move the task(s) to **Target column**.\n\n`;
+  let sec="";
+  m.items.forEach(it=>{
+    if(it.section!==sec){ sec=it.section; s+=`\n## ${sec}\n`; }
+    s+=`\n### ${it.order}. ${it.code} — ${it.title}\n`;
+    s+=`- Tasks: ${it.taskIds.map(id=>"#"+id).join(", ")}\n`;
+    s+=`- Status: **${it.status}**${it.targetColumn?` → move to **${it.targetColumn}**`:""}\n`;
+    s+=`- Photos: ${it.photos.length? it.photos.join(", "):"none"}\n`;
+    if(it.note) s+=`- Note: ${it.note}\n`;
+  });
+  return s;
+}
+function buildClientMd(m){
+  let s=`# Lee Hwy — Client / Project-Team Action List\n\n**Project:** ${m.project.name}\n**Stage:** ${m.visitStage}\n**Date:** ${m.generatedAt.slice(0,10)}\n\n`;
+  s+=`The following items could not be verified on site or in the plans. Please provide documentation so the certification can proceed.\n\n`;
+  if(!m.clientActions.length){ s+=`_None flagged._\n`; return s; }
+  m.clientActions.forEach((it,i)=>{
+    s+=`${i+1}. **${it.code} — ${it.title}**\n`;
+    if(it.note) s+=`   - Detail: ${it.note}\n`;
+    s+=`   - Standard reference: task ${it.taskIds.map(id=>"#"+id).join(", ")}\n\n`;
+  });
+  return s;
+}
+
+/* --- minimal store-only ZIP (no dependencies, works offline) --- */
+function strBytes(s){ return new TextEncoder().encode(s); }
+let _crcT;
+function crcTable(){ if(_crcT)return _crcT; const t=new Uint32Array(256);
+  for(let n=0;n<256;n++){ let c=n; for(let k=0;k<8;k++){ c=c&1?(0xEDB88320^(c>>>1)):(c>>>1);} t[n]=c>>>0;} _crcT=t; return t;}
+function crc32(bytes){ const t=crcTable(); let c=0^(-1);
+  for(let i=0;i<bytes.length;i++) c=(c>>>8)^t[(c^bytes[i])&0xFF]; return (c^(-1))>>>0; }
+function zipStore(files){
+  const parts=[]; const central=[]; let offset=0;
+  const d=new Date();
+  const time=(d.getHours()<<11)|(d.getMinutes()<<5)|(d.getSeconds()>>1);
+  const date=((d.getFullYear()-1980)<<9)|((d.getMonth()+1)<<5)|d.getDate();
+  for(const f of files){
+    const name=strBytes(f.name); const data=f.data; const crc=crc32(data); const size=data.length>>>0;
+    const lh=new DataView(new ArrayBuffer(30));
+    lh.setUint32(0,0x04034b50,true); lh.setUint16(4,20,true); lh.setUint16(6,0,true);
+    lh.setUint16(8,0,true); lh.setUint16(10,time,true); lh.setUint16(12,date,true);
+    lh.setUint32(14,crc,true); lh.setUint32(18,size,true); lh.setUint32(22,size,true);
+    lh.setUint16(26,name.length,true); lh.setUint16(28,0,true);
+    parts.push(new Uint8Array(lh.buffer), name, data);
+    const ch=new DataView(new ArrayBuffer(46));
+    ch.setUint32(0,0x02014b50,true); ch.setUint16(4,20,true); ch.setUint16(6,20,true);
+    ch.setUint16(8,0,true); ch.setUint16(10,0,true); ch.setUint16(12,time,true); ch.setUint16(14,date,true);
+    ch.setUint32(16,crc,true); ch.setUint32(20,size,true); ch.setUint32(24,size,true);
+    ch.setUint16(28,name.length,true); ch.setUint16(30,0,true); ch.setUint16(32,0,true);
+    ch.setUint16(34,0,true); ch.setUint16(36,0,true); ch.setUint32(38,0,true); ch.setUint32(42,offset,true);
+    central.push(new Uint8Array(ch.buffer), name);
+    offset += 30 + name.length + size;
+  }
+  let cSize=0; central.forEach(c=>cSize+=c.length);
+  const eo=new DataView(new ArrayBuffer(22));
+  eo.setUint32(0,0x06054b50,true); eo.setUint16(4,0,true); eo.setUint16(6,0,true);
+  eo.setUint16(8,files.length,true); eo.setUint16(10,files.length,true);
+  eo.setUint32(12,cSize,true); eo.setUint32(16,offset,true); eo.setUint16(20,0,true);
+  return new Blob([...parts,...central,new Uint8Array(eo.buffer)],{type:"application/zip"});
+}
+
+async function shipBundle(subset, meta, onSent){
+  toast("Packaging…");
+  try{
+    const {blob,name}=await buildManifestAndZip(subset, meta);
+    const file=new File([blob],name,{type:"application/zip"});
+    if(navigator.canShare && navigator.canShare({files:[file]})){
+      try{ await navigator.share({files:[file], title:name, text:"Lee Hwy pre-rock field capture"});
+        toast("Shared ✔"); if(onSent)onSent(); return true; }
+      catch(e){ if(e && e.name==="AbortError"){ return false; } }
+    }
+    saveBlob(blob,name); toast("Downloaded — send in email/Slack"); if(onSent)onSent(); return true;
+  }catch(e){ toast("Export error — try again"); return false; }
+}
+async function sendBatch(bi){
+  const subset=BATCHES[bi].map(i=>ITEMS[i]);
+  const ok=await shipBundle(subset, {partial:true, label:"batch"+(bi+1)}, ()=>{
+    state.batchSent[bi]=new Date().toISOString();
+    BATCHES[bi].forEach(i=>{ state.items[ITEMS[i].code].sent=true; });
+    saveState();
+  });
+  if(ok){ updateBatchSub(bi);
+    if(!document.getElementById('reviewScreen').classList.contains('hidden')) buildReview(); }
+}
+async function exportBundle(){
+  await shipBundle(ITEMS, {partial:false, label:"full"}, ()=>{
+    ITEMS.forEach(it=>state.items[it.code].sent=true);
+    BATCHES.forEach((_,bi)=>{ if(!state.batchSent[bi]) state.batchSent[bi]=new Date().toISOString(); });
+    saveState(); buildReview();
+  });
+}
+async function downloadBundle(){
+  toast("Packaging…");
+  try{ const {blob,name}=await buildManifestAndZip(ITEMS,{partial:false,label:"full"}); saveBlob(blob,name); toast("Downloaded ✔"); }
+  catch(e){ toast("Export error"); }
+}
+function saveBlob(blob,name){ const url=URL.createObjectURL(blob);
+  const a=document.createElement("a"); a.href=url; a.download=name; document.body.appendChild(a); a.click();
+  setTimeout(()=>{a.remove();URL.revokeObjectURL(url);},4000); }
+
+/* ============================ MISC ============================ */
+let _tt;
+function toast(msg){ const t=document.getElementById("toast"); t.textContent=msg; t.classList.add("show");
+  clearTimeout(_tt); _tt=setTimeout(()=>t.classList.remove("show"),1800); }
+
+// passcode gate
+const PASSCODE="LEEHWY26";
+function tryUnlock(){
+  const el=document.getElementById('lockInput'); const v=(el.value||'').trim();
+  if(v.toUpperCase()===PASSCODE){ try{localStorage.setItem('leehwy_unlocked','1');}catch(e){}
+    document.getElementById('lockScreen').classList.add('hidden'); el.value=''; }
+  else { document.getElementById('lockMsg').textContent='Incorrect passcode'; }
+}
+try{ if(localStorage.getItem('leehwy_unlocked')==='1') document.getElementById('lockScreen').classList.add('hidden'); }catch(e){}
+
+// restore inspector + counts on load
+document.getElementById("inspector").value=state.inspector||"";
+document.getElementById("introCount").textContent=ITEMS.length+" applicable";
+updateProgress();
+</script>
+</body>
+</html>
