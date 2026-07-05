@@ -160,6 +160,7 @@
     <div class="label" style="margin-top:16px">How this works</div>
     <div class="capture-txt">You'll go through <b id="introCount">the</b> applicable pre-rock items one at a time. For each: read what to capture, <b>take photos right here</b> (they're auto-filed to the right Teamwork task — no labeling), add a quick note, and set the <b>status</b> (field reviewed / needs attention / client must provide / N/A). Everything saves as you go, even offline.</div>
     <div class="standard" style="margin-top:14px">Send each batch as you go — on the Share sheet choose <b>Dropbox → EOS Field Intake</b>. It's saved on this iPad first, so no signal is fine; Dropbox finishes the upload in the background once you're online. EOS then posts the photos + comments to Teamwork and moves each task.</div>
+    <div class="banner" id="savedInfo" style="margin-top:12px"></div>
   </div>
   <button class="btn-primary" onclick="startWalk()">Start field walk →</button>
   <div style="height:14px"></div>
@@ -372,6 +373,7 @@ async function delPhoto(id){ const d=await db(); return new Promise((res,rej)=>{
 const screens=["introScreen","itemScreen","listScreen","reviewScreen"];
 function show(id){ screens.forEach(s=>document.getElementById(s).classList.toggle("hidden", s!==id));
   document.getElementById("itemNav").classList.toggle("hidden", id!=="itemScreen");
+  if(id==="introScreen") updateSavedInfo();
   window.scrollTo(0,0); }
 
 function startWalk(){ state.inspector=document.getElementById("inspector").value.trim(); saveState();
@@ -750,6 +752,13 @@ async function uploadPending(){
     if(!document.getElementById('reviewScreen').classList.contains('hidden')) buildReview();
   });
 }
+function updateSavedInfo(){
+  const el=document.getElementById('savedInfo'); if(!el) return;
+  let set=0, ph=0; ITEMS.forEach(it=>{ const s=state.items[it.code]; if(s.status)set++; ph+=s.photos.length; });
+  el.innerHTML = (set||ph)
+    ? '💾 Saved on this iPad: <b>'+set+'</b> item'+(set!==1?'s':'')+' set, <b>'+ph+'</b> photo'+(ph!==1?'s':'')+'. Safe to close &amp; reopen — it stays here until sent.'
+    : '💾 Anything you capture is saved on this iPad automatically — even with no signal.';
+}
 window.addEventListener('online', updateNetBar);
 window.addEventListener('offline', updateNetBar);
 
@@ -765,8 +774,8 @@ try{ if(localStorage.getItem('leehwy_unlocked')==='1') document.getElementById('
 
 // restore inspector + counts on load
 document.getElementById("inspector").value=state.inspector||"";
-document.getElementById("introCount").textContent=ITEMS.length+" applicable";
-updateProgress(); updateNetBar();
+document.getElementById("introCount").textContent=ITEMS.length;
+updateProgress(); updateNetBar(); updateSavedInfo();
 </script>
 </body>
 </html>
