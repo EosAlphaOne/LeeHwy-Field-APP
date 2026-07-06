@@ -21,7 +21,7 @@
   html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
     -webkit-text-size-adjust:100%}
-  body{padding-bottom:env(safe-area-inset-bottom)}
+  body{padding-bottom:calc(96px + env(safe-area-inset-bottom))}
   .hidden{display:none !important}
   /* Header */
   header{position:sticky;top:0;z-index:20;background:var(--green);color:#fff;
@@ -73,8 +73,11 @@
   .sbtn.sel.na{border-color:var(--na);background:#f0f2f1}
   .sbtn.full{grid-column:1 / -1}
   /* Nav */
-  .nav{position:sticky;bottom:0;z-index:15;background:var(--card);border-top:1px solid var(--line);
-    display:flex;align-items:center;gap:12px;padding:10px 16px calc(10px + env(safe-area-inset-bottom));max-width:820px;margin:0 auto}
+  .nav{position:sticky;bottom:calc(34px + env(safe-area-inset-bottom));z-index:15;background:var(--card);border-top:1px solid var(--line);
+    display:flex;align-items:center;gap:12px;padding:10px 16px;max-width:820px;margin:0 auto}
+  .savedbar{position:fixed;left:0;right:0;bottom:0;z-index:40;background:#245f3c;color:#fff;
+    font-size:12px;font-weight:600;text-align:center;padding:6px 12px calc(6px + env(safe-area-inset-bottom));line-height:1.35}
+  .savedbar b{color:#bfe6cd}
   .nav button{flex:1;padding:15px;border-radius:12px;border:0;font-size:16px;font-weight:700}
   .nav .prev{background:#eef1ee;color:var(--ink)}
   .nav .next{background:var(--green);color:#fff}
@@ -158,9 +161,8 @@
     <div class="label">Inspector</div>
     <input id="inspector" type="text" placeholder="Your name" style="width:100%;border:1px solid var(--line);border-radius:12px;padding:12px;font-size:16px">
     <div class="label" style="margin-top:16px">How this works</div>
-    <div class="capture-txt">You'll go through <b id="introCount">the</b> applicable pre-rock items one at a time. For each: read what to capture, <b>take photos right here</b> (they're auto-filed to the right Teamwork task — no labeling), add a quick note, and set the <b>status</b> (field reviewed / needs attention / client must provide / N/A). Everything saves as you go, even offline.</div>
+    <div class="capture-txt">You'll go through <b id="introCount">the</b> applicable pre-rock items one at a time. For each: read what to capture, <b>take photos right here</b> (organized by item so EOS files them to the right Teamwork task — no manual labeling), add a quick note, and set the <b>status</b> (field reviewed / needs attention / client must provide / N/A). Everything saves as you go, even offline.</div>
     <div class="standard" style="margin-top:14px">Send each batch as you go — on the Share sheet choose <b>Dropbox → EOS Field Intake</b>. It's saved on this iPad first, so no signal is fine; Dropbox finishes the upload in the background once you're online. EOS then posts the photos + comments to Teamwork and moves each task.</div>
-    <div class="banner" id="savedInfo" style="margin-top:12px"></div>
   </div>
   <button class="btn-primary" onclick="startWalk()">Start field walk →</button>
   <div style="height:14px"></div>
@@ -199,15 +201,17 @@
     <div class="label" style="margin-top:14px">Overall site note (optional)</div>
     <textarea id="siteNote" placeholder="Anything the office should know about this visit…"></textarea>
   </div>
-  <button class="btn-primary" onclick="exportBundle()">📤 Send everything at once</button>
-  <div style="height:12px"></div>
-  <button class="btn-ghost" onclick="downloadBundle()">Download full .zip instead</button>
+  <button class="btn-ghost" onclick="exportBundle()">📤 Send all remaining (unsent)</button>
+  <div class="banner" style="text-align:center;margin-top:6px">Sending by batch (above) is more reliable on iPad than one big send.</div>
+  <div style="height:10px"></div>
+  <button class="btn-ghost" onclick="downloadBundle()">Download all files instead</button>
   <div style="height:12px"></div>
   <button class="btn-ghost" onclick="hideReview()">← Keep editing</button>
   <div class="banner" style="text-align:center;margin-top:14px">Photos never leave this iPad until you tap Send. No Teamwork login needed.</div>
 </main>
 
 <div class="toast" id="toast"></div>
+<div class="savedbar" id="savedBar"></div>
 
 <script>
 /* ============================ DATA ============================ */
@@ -379,7 +383,7 @@ function show(id){ screens.forEach(s=>document.getElementById(s).classList.toggl
 function startWalk(){ state.inspector=document.getElementById("inspector").value.trim(); saveState();
   idx=0; show("itemScreen"); render(); }
 function showList(){ buildList(); show("listScreen"); }
-function backFromList(){ if(document.getElementById("inspector").value!==undefined){} show(idx>=0?"itemScreen":"introScreen"); render(); }
+function backFromList(){ show("itemScreen"); render(); }
 function go(d){ const n=idx+d; if(n<0){ show("introScreen"); return;} if(n>=ITEMS.length){ showReview(); return;} idx=n; render(); }
 function jump(i){ idx=i; show("itemScreen"); render(); }
 
@@ -558,27 +562,28 @@ function buildReview(){
     : `<div class="banner">No client-provided items flagged yet.</div>`;
 }
 
-/* ============================ EXPORT (offline zip) ============================ */
+/* ============================ EXPORT (loose files → Dropbox) ============================ */
 function esc(s){ return (s||"").replace(/[<>&]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[c])); }
 function sanitize(s){ return s.replace(/[^a-z0-9]+/gi,'-').replace(/^-|-$/g,''); }
 
-async function buildManifestAndZip(subset, meta){
+// Build LOOSE files (no zip): manifest.json + REPORT.md + one file per photo.
+// Every file is prefixed with a unique bundle id so multiple batches coexist in the intake folder.
+async function buildBundleFiles(subset, meta){
   subset = subset || ITEMS;
   meta = meta || {partial:false, label:"full"};
   const stamp=new Date();
   const dateStr=stamp.toISOString().slice(0,10);
-  const files=[]; const manifestItems=[]; const clientActions=[]; let missing=0;
   const bundleId = stamp.getTime().toString(36)+"-"+Math.random().toString(36).slice(2,8);
+  const prefix = `LeeHwy_${dateStr}_${sanitize(meta.label)}_${bundleId}__`;
+  const shareFiles=[]; const manifestItems=[]; const clientActions=[]; let missing=0;
   for(const it of subset){
-    const gidx = ITEMS.indexOf(it)+1;               // global item number (unique across batches)
+    const gidx = ITEMS.indexOf(it)+1;               // global item number
     const st=state.items[it.code];
     const photoNames=[];
     for(const p of st.photos){
       const blob=await getPhoto(p.id); if(!blob){ missing++; continue; }
-      // filename carries the stable photo id so re-sends never collide/overwrite across bundles
-      const fname=`photos/${String(gidx).padStart(2,'0')}_${sanitize(it.code)}_${p.id}.jpg`;
-      const buf=new Uint8Array(await blob.arrayBuffer());
-      files.push({name:fname, data:buf});
+      const fname=`${prefix}${String(gidx).padStart(2,'0')}_${sanitize(it.code)}_${p.id}.jpg`;
+      shareFiles.push(new File([blob], fname, {type:"image/jpeg"}));
       photoNames.push(fname);
     }
     const col = st.status? COLUMNS[st.status] : null;
@@ -595,16 +600,15 @@ async function buildManifestAndZip(subset, meta){
   const manifest={
     bundleId, project:PROJECT, inspector:state.inspector||"", visitStage:PROJECT.stage,
     generatedAt:stamp.toISOString(), siteNote:state.siteNote||"", photosMissing:missing,
+    filePrefix:prefix,
     bundle:{partial:meta.partial, label:meta.label, itemCodes:subset.map(x=>x.code), totalItems:ITEMS.length},
-    dedupeRule:"If two bundles contain the same item, the later generatedAt supersedes. Photo filenames are globally unique by photo id.",
+    dedupeRule:"If a later bundle repeats an item already posted, REPLACE that item's photos/comment — do not append. Later generatedAt wins. Photo files are uniquely named.",
     columnMap:COLUMNS, items:manifestItems, clientActions
   };
-  files.push({name:"manifest.json", data:strBytes(JSON.stringify(manifest,null,2))});
-  files.push({name:"REPORT.md", data:strBytes(buildReport(manifest))});
-  files.push({name:"CLIENT-ACTION-LIST.md", data:strBytes(buildClientMd(manifest))});
-  const blob=zipStore(files);
-  const suffix = meta.partial ? ("_"+meta.label) : "";
-  return {blob, name:`LeeHwy_PreRock_${dateStr}${suffix}.zip`, missing};
+  // manifest first, then a human-readable report, then photos
+  shareFiles.unshift(new File([JSON.stringify(manifest,null,2)], `${prefix}manifest.json`, {type:"application/json"}));
+  shareFiles.splice(1,0, new File([buildReport(manifest)], `${prefix}REPORT.md`, {type:"text/markdown"}));
+  return {shareFiles, missing, count:shareFiles.length};
 }
 function buildReport(m){
   let s=`# Lee Hwy Pre-Rock Field Report\n\n**Project:** ${m.project.name} — ${m.project.address}\n`;
@@ -624,70 +628,20 @@ function buildReport(m){
   });
   return s;
 }
-function buildClientMd(m){
-  let s=`# Lee Hwy — Client / Project-Team Action List\n\n**Project:** ${m.project.name}\n**Stage:** ${m.visitStage}\n**Date:** ${m.generatedAt.slice(0,10)}\n\n`;
-  s+=`The following items could not be verified on site or in the plans. Please provide documentation so the certification can proceed.\n\n`;
-  if(!m.clientActions.length){ s+=`_None flagged._\n`; return s; }
-  m.clientActions.forEach((it,i)=>{
-    s+=`${i+1}. **${it.code} — ${it.title}**\n`;
-    if(it.note) s+=`   - Detail: ${it.note}\n`;
-    s+=`   - Standard reference: task ${it.taskIds.map(id=>"#"+id).join(", ")}\n\n`;
-  });
-  return s;
-}
-
-/* --- minimal store-only ZIP (no dependencies, works offline) --- */
-function strBytes(s){ return new TextEncoder().encode(s); }
-let _crcT;
-function crcTable(){ if(_crcT)return _crcT; const t=new Uint32Array(256);
-  for(let n=0;n<256;n++){ let c=n; for(let k=0;k<8;k++){ c=c&1?(0xEDB88320^(c>>>1)):(c>>>1);} t[n]=c>>>0;} _crcT=t; return t;}
-function crc32(bytes){ const t=crcTable(); let c=0^(-1);
-  for(let i=0;i<bytes.length;i++) c=(c>>>8)^t[(c^bytes[i])&0xFF]; return (c^(-1))>>>0; }
-function zipStore(files){
-  const parts=[]; const central=[]; let offset=0;
-  const d=new Date();
-  const time=(d.getHours()<<11)|(d.getMinutes()<<5)|(d.getSeconds()>>1);
-  const date=((d.getFullYear()-1980)<<9)|((d.getMonth()+1)<<5)|d.getDate();
-  for(const f of files){
-    const name=strBytes(f.name); const data=f.data; const crc=crc32(data); const size=data.length>>>0;
-    const lh=new DataView(new ArrayBuffer(30));
-    lh.setUint32(0,0x04034b50,true); lh.setUint16(4,20,true); lh.setUint16(6,0,true);
-    lh.setUint16(8,0,true); lh.setUint16(10,time,true); lh.setUint16(12,date,true);
-    lh.setUint32(14,crc,true); lh.setUint32(18,size,true); lh.setUint32(22,size,true);
-    lh.setUint16(26,name.length,true); lh.setUint16(28,0,true);
-    parts.push(new Uint8Array(lh.buffer), name, data);
-    const ch=new DataView(new ArrayBuffer(46));
-    ch.setUint32(0,0x02014b50,true); ch.setUint16(4,20,true); ch.setUint16(6,20,true);
-    ch.setUint16(8,0,true); ch.setUint16(10,0,true); ch.setUint16(12,time,true); ch.setUint16(14,date,true);
-    ch.setUint32(16,crc,true); ch.setUint32(20,size,true); ch.setUint32(24,size,true);
-    ch.setUint16(28,name.length,true); ch.setUint16(30,0,true); ch.setUint16(32,0,true);
-    ch.setUint16(34,0,true); ch.setUint16(36,0,true); ch.setUint32(38,0,true); ch.setUint32(42,offset,true);
-    central.push(new Uint8Array(ch.buffer), name);
-    offset += 30 + name.length + size;
-  }
-  let cSize=0; central.forEach(c=>cSize+=c.length);
-  const eo=new DataView(new ArrayBuffer(22));
-  eo.setUint32(0,0x06054b50,true); eo.setUint16(4,0,true); eo.setUint16(6,0,true);
-  eo.setUint16(8,files.length,true); eo.setUint16(10,files.length,true);
-  eo.setUint32(12,cSize,true); eo.setUint32(16,offset,true); eo.setUint16(20,0,true);
-  return new Blob([...parts,...central,new Uint8Array(eo.buffer)],{type:"application/zip"});
-}
-
 async function shipBundle(subset, meta, onSent){
   toast("Packaging…");
   try{
-    const {blob,name,missing}=await buildManifestAndZip(subset, meta);
-    const file=new File([blob],name,{type:"application/zip"});
-    if(navigator.canShare && navigator.canShare({files:[file]})){
-      try{ await navigator.share({files:[file], title:name, text:"Lee Hwy pre-rock field capture"});
-        toast(missing?("Handed to Dropbox ✔ ("+missing+" photo(s) missing)"):"Handed to Dropbox ✔"); if(onSent)onSent(); return true; }
+    const {shareFiles, missing}=await buildBundleFiles(subset, meta);
+    if(navigator.canShare && navigator.canShare({files:shareFiles})){
+      try{ await navigator.share({files:shareFiles, title:"Lee Hwy field capture", text:"Save to Dropbox → EOS Field Intake"});
+        toast(missing?("Handed to Dropbox ✔ ("+missing+" photo(s) missing)"):("Handed to Dropbox ✔ — "+shareFiles.length+" files")); if(onSent)onSent(); return true; }
       catch(e){
         if(e && e.name==="AbortError") return false;                 // user cancelled — NOT sent
         toast("Share didn't complete — not sent. Try again."); return false;   // do NOT mark sent
       }
     }
-    // Web Share with files not available on this device → download fallback
-    saveBlob(blob,name); toast("Downloaded — attach to Dropbox/email"); if(onSent)onSent(); return true;
+    // Web Share with files not available on this device → download each file
+    shareFiles.forEach(f=>saveBlob(f, f.name)); toast("Downloaded "+shareFiles.length+" files"); if(onSent)onSent(); return true;
   }catch(e){ toast("Export error — try again"); return false; }
 }
 async function sendBatch(bi){
@@ -700,16 +654,17 @@ async function sendBatch(bi){
   if(ok){ updateBatchSub(bi); updateNetBar();
     if(!document.getElementById('reviewScreen').classList.contains('hidden')) buildReview(); }
 }
-async function exportBundle(){
-  await shipBundle(ITEMS, {partial:false, label:"full"}, ()=>{
-    ITEMS.forEach(it=>state.items[it.code].sent=true);
-    BATCHES.forEach((_,bi)=>{ if(!state.batchSent[bi]) state.batchSent[bi]=new Date().toISOString(); });
-    saveState(); buildReview(); updateNetBar();
+async function exportBundle(){   // "Send all remaining" — only items not yet sent (never re-sends already-posted items)
+  const subset=pendingItems();
+  if(!subset.length){ toast("Nothing left to send"); return; }
+  await shipBundle(subset, {partial:true, label:"all-unsent"}, ()=>{
+    subset.forEach(it=>{ state.items[it.code].sent=true; });
+    markBatchesSent(); saveState(); buildReview(); updateNetBar();
   });
 }
 async function downloadBundle(){
   toast("Packaging…");
-  try{ const {blob,name}=await buildManifestAndZip(ITEMS,{partial:false,label:"full"}); saveBlob(blob,name); toast("Downloaded ✔"); }
+  try{ const {shareFiles}=await buildBundleFiles(ITEMS,{partial:false,label:"full"}); shareFiles.forEach(f=>saveBlob(f,f.name)); toast("Downloaded "+shareFiles.length+" files"); }
   catch(e){ toast("Export error"); }
 }
 function saveBlob(blob,name){ const url=URL.createObjectURL(blob);
@@ -734,6 +689,7 @@ function markBatchesSent(){
   });
 }
 function updateNetBar(){
+  updateSavedInfo();
   const bar=document.getElementById('netbar'); if(!bar) return;
   const pend=pendingItems().length;
   if(!navigator.onLine){
@@ -753,11 +709,10 @@ async function uploadPending(){
   });
 }
 function updateSavedInfo(){
-  const el=document.getElementById('savedInfo'); if(!el) return;
-  let set=0, ph=0; ITEMS.forEach(it=>{ const s=state.items[it.code]; if(s.status)set++; ph+=s.photos.length; });
-  el.innerHTML = (set||ph)
-    ? '💾 Saved on this iPad: <b>'+set+'</b> item'+(set!==1?'s':'')+' set, <b>'+ph+'</b> photo'+(ph!==1?'s':'')+'. Safe to close &amp; reopen — it stays here until sent.'
-    : '💾 Anything you capture is saved on this iPad automatically — even with no signal.';
+  const el=document.getElementById('savedBar'); if(!el) return;
+  let set=0, ph=0, sent=0; ITEMS.forEach(it=>{ const s=state.items[it.code]; if(s.status)set++; ph+=s.photos.length; if(s.sent)sent++; });
+  el.innerHTML = '💾 Saved on this iPad · <b>'+set+'</b>/'+ITEMS.length+' set · <b>'+ph+'</b> photo'+(ph!==1?'s':'')
+    + (sent?(' · <b>'+sent+'</b> sent'):'');
 }
 window.addEventListener('online', updateNetBar);
 window.addEventListener('offline', updateNetBar);
