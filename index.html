@@ -636,7 +636,10 @@ function buildReport(m){
   });
   return s;
 }
+let _uploading=false;
 async function shipBundle(subset, meta, onSent){
+  if(_uploading) return false;   // guard: prevent double-send (online event + manual tap overlap)
+  _uploading=true;
   toast("Preparing…");
   try{
     const {shareFiles, missing}=await buildBundleFiles(subset, meta);
@@ -659,6 +662,7 @@ async function shipBundle(subset, meta, onSent){
     }
     shareFiles.forEach(f=>saveBlob(f, f.name)); toast("Downloaded "+shareFiles.length+" files"); if(onSent)onSent(); return true;
   }catch(e){ toast("Send error — try again"); return false; }
+  finally{ _uploading=false; }
 }
 async function sendBatch(bi){
   const subset=BATCHES[bi].map(i=>ITEMS[i]);
@@ -673,10 +677,11 @@ async function sendBatch(bi){
 async function exportBundle(){   // "Send all remaining" — only items not yet sent (never re-sends already-posted items)
   const subset=pendingItems();
   if(!subset.length){ toast("Nothing left to send"); return; }
-  await shipBundle(subset, {partial:true, label:"all-unsent"}, ()=>{
+  const ok=await shipBundle(subset, {partial:true, label:"all-unsent"}, ()=>{
     subset.forEach(it=>{ state.items[it.code].sent=true; });
     markBatchesSent(); saveState(); buildReview(); updateNetBar();
   });
+  if(!ok){ updateNetBar(); buildReview(); }
 }
 async function downloadBundle(){
   toast("Packaging…");
@@ -749,7 +754,7 @@ async function dbxConnect(){
 }
 async function dbxSubmitCode(){
   const el=document.getElementById('dbxCodeInput'); const code=((el&&el.value)||'').trim(); if(!code){ toast('Paste the code first'); return; }
-  const v=localStorage.getItem('dbx_verifier');
+  const v=localStorage.getItem('dbx_verifier'); if(!v){ toast('Tap Connect again'); return; }
   try{
     const body=new URLSearchParams({grant_type:'authorization_code', code:code, code_verifier:v, client_id:DBX_APP_KEY});
     const r=await fetch('https://api.dropboxapi.com/oauth2/token',{method:'POST', body:body});
@@ -766,18 +771,24 @@ async function dbxToken(){
   const acc=localStorage.getItem('dbx_access'); const exp=+(localStorage.getItem('dbx_exp')||0);
   if(acc && Date.now()<exp-60000) return acc;
   const rt=localStorage.getItem('dbx_refresh'); if(!rt) return null;
-  const body=new URLSearchParams({grant_type:'refresh_token', refresh_token:rt, client_id:DBX_APP_KEY});
-  const r=await fetch('https://api.dropboxapi.com/oauth2/token',{method:'POST', body:body});
-  const j=await r.json();
+  let j={};
+  try{
+    const r=await fetch('https://api.dropboxapi.com/oauth2/token',{method:'POST', body:new URLSearchParams({grant_type:'refresh_token', refresh_token:rt, client_id:DBX_APP_KEY})});
+    j=await r.json();
+  }catch(e){ return null; }   // network blip — keep creds, retry later
   if(j.access_token){ localStorage.setItem('dbx_access', j.access_token); localStorage.setItem('dbx_exp', String(Date.now()+((j.expires_in||14400)*1000))); return j.access_token; }
+  // token revoked/invalid → clear creds so the Connect button comes back
+  localStorage.removeItem('dbx_refresh'); localStorage.removeItem('dbx_access'); localStorage.removeItem('dbx_exp');
+  updateDbxBar();
   return null;
 }
+function dbxArg(o){ return JSON.stringify(o).replace(/[-￿]/g, c=>'\\u'+c.charCodeAt(0).toString(16).padStart(4,'0')); }
 async function dbxUpload(file){
   const tok=await dbxToken(); if(!tok) throw new Error('not connected');
   const arg={path:'/'+file.name, mode:'add', autorename:true, mute:true};
   const r=await fetch('https://content.dropboxapi.com/2/files/upload',{
     method:'POST',
-    headers:{'Authorization':'Bearer '+tok,'Dropbox-API-Arg':JSON.stringify(arg),'Content-Type':'application/octet-stream'},
+    headers:{'Authorization':'Bearer '+tok,'Dropbox-API-Arg':dbxArg(arg),'Content-Type':'application/octet-stream'},
     body: await file.arrayBuffer()
   });
   if(!r.ok) throw new Error('HTTP '+r.status);
