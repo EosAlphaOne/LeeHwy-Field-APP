@@ -176,6 +176,8 @@
   <button class="btn-primary" onclick="startWalk()">Start field walk →</button>
   <div style="height:14px"></div>
   <button class="btn-ghost" onclick="showList()">Jump to a specific item</button>
+  <div style="height:14px"></div>
+  <button class="btn-ghost" onclick="newVisit()" style="color:#c0392b">↺ Start new visit (clear this iPad)</button>
 </main>
 
 <!-- ITEM -->
@@ -363,6 +365,13 @@ function loadState(){
   return blankState();
 }
 function saveState(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(state)); }catch(e){ toast("Storage full — send bundle soon"); } }
+async function newVisit(){
+  if(!confirm('Start a NEW visit?\n\nThis clears ALL entries and photos saved on this iPad. Make sure the current visit is fully sent first.')) return;
+  try{ localStorage.removeItem(LS_KEY); }catch(e){}
+  try{ if(_db){ _db.close(); _db=null; } }catch(e){}
+  try{ await new Promise(function(res){ const req=indexedDB.deleteDatabase('leehwy_prerock'); req.onsuccess=res; req.onerror=res; req.onblocked=res; setTimeout(res,1500); }); }catch(e){}
+  location.reload();
+}
 
 /* IndexedDB for photo blobs */
 let _db=null;
