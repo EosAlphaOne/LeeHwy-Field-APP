@@ -151,6 +151,14 @@
 </header>
 <div class="progwrap"><div class="progbar" id="progbar"></div></div>
 <div class="netbar" id="netbar"></div>
+<div class="netbar" id="dbxbar"></div>
+<div id="dbxCodeWrap" style="display:none;padding:10px 14px;background:#eef4f0;text-align:center;font-size:13px;color:#2a3830">
+  A Dropbox tab opened — approve, then paste the code it shows here:
+  <div style="display:flex;gap:8px;max-width:440px;margin:8px auto 0">
+    <input id="dbxCodeInput" type="text" autocomplete="off" placeholder="Paste Dropbox code" style="flex:1;border:1px solid var(--line);border-radius:8px;padding:9px;font-size:14px">
+    <button onclick="dbxSubmitCode()" style="background:var(--green);color:#fff;border:0;border-radius:8px;padding:9px 14px;font-weight:700">Connect</button>
+  </div>
+</div>
 
 <!-- INTRO -->
 <main id="introScreen">
@@ -162,7 +170,7 @@
     <input id="inspector" type="text" placeholder="Your name" style="width:100%;border:1px solid var(--line);border-radius:12px;padding:12px;font-size:16px">
     <div class="label" style="margin-top:16px">How this works</div>
     <div class="capture-txt">You'll go through <b id="introCount">the</b> applicable pre-rock items one at a time. For each: read what to capture, <b>take photos right here</b> (organized by item so EOS files them to the right Teamwork task — no manual labeling), add a quick note, and set the <b>status</b> (field reviewed / needs attention / client must provide / N/A). Everything saves as you go, even offline.</div>
-    <div class="standard" style="margin-top:14px">Send each batch as you go — on the Share sheet choose <b>Dropbox → EOS Field Intake</b>. It's saved on this iPad first, so no signal is fine; Dropbox finishes the upload in the background once you're online. EOS then posts the photos + comments to Teamwork and moves each task.</div>
+    <div class="standard" style="margin-top:14px">Tap Send and each batch <b>uploads straight to Dropbox</b> — one tap, no share sheet (just Connect Dropbox once at the top). Saved on this iPad first, so no signal is fine; it uploads automatically when you're back online. EOS then posts the photos + comments to Teamwork and moves each task.</div>
   </div>
   <button class="btn-primary" onclick="startWalk()">Start field walk →</button>
   <div style="height:14px"></div>
@@ -427,7 +435,7 @@ async function render(){
       <div class="batchhead">📦 Batch ${bi+1} of ${BATCHES.length} · item ${BATCHES[bi].indexOf(idx)+1} of ${BATCHES[bi].length} in this batch</div>
       <div class="batchsub" id="batchsub"></div>
       <button class="btn-batch" onclick="sendBatch(${bi})">📤 Send this batch → Dropbox</button>
-      <div class="banner" style="margin-top:8px">Tap Send anytime — even with no signal. On the Share sheet choose <b>Dropbox → EOS Field Intake</b>. It's saved on this iPad and handed to Dropbox; Dropbox finishes the upload in the background. Open the Dropbox app to confirm it reached EOS Field Intake.</div>
+      <div class="banner" style="margin-top:8px">Tap Send anytime — even with no signal. It's saved on this iPad and <b>uploads straight to Dropbox</b> (one tap, no share sheet). Offline? It uploads automatically the moment you're back online.</div>
     </div>
   `;
   updateBatchSub(bi);
@@ -629,20 +637,28 @@ function buildReport(m){
   return s;
 }
 async function shipBundle(subset, meta, onSent){
-  toast("Packaging…");
+  toast("Preparing…");
   try{
     const {shareFiles, missing}=await buildBundleFiles(subset, meta);
+    // PRIMARY: one-tap direct upload to Dropbox (no share sheet)
+    if(dbxConnected()){
+      if(!navigator.onLine){ toast("Offline — saved on iPad; uploads when back online"); return false; }
+      try{
+        toast("Uploading "+shareFiles.length+" files…");
+        for(const f of shareFiles){ await dbxUpload(f); }
+        toast("Uploaded to Dropbox ✔"+(missing?(" ("+missing+" missing)"):""));
+        if(onSent)onSent(); return true;
+      }catch(e){ toast("Upload didn't finish — will retry when online"); return false; }
+    }
+    // FALLBACK (not connected): Web Share sheet, so it still works
     if(navigator.canShare && navigator.canShare({files:shareFiles})){
       try{ await navigator.share({files:shareFiles, title:"Lee Hwy field capture", text:"Save to Dropbox → EOS Field Intake"});
-        toast(missing?("Handed to Dropbox ✔ ("+missing+" photo(s) missing)"):("Handed to Dropbox ✔ — "+shareFiles.length+" files")); if(onSent)onSent(); return true; }
-      catch(e){
-        if(e && e.name==="AbortError") return false;                 // user cancelled — NOT sent
-        toast("Share didn't complete — not sent. Try again."); return false;   // do NOT mark sent
-      }
+        toast("Handed off ✔ — "+shareFiles.length+" files"); if(onSent)onSent(); return true; }
+      catch(e){ if(e && e.name==="AbortError") return false;
+        toast("Not sent. Tip: Connect Dropbox for one-tap uploads."); return false; }
     }
-    // Web Share with files not available on this device → download each file
     shareFiles.forEach(f=>saveBlob(f, f.name)); toast("Downloaded "+shareFiles.length+" files"); if(onSent)onSent(); return true;
-  }catch(e){ toast("Export error — try again"); return false; }
+  }catch(e){ toast("Send error — try again"); return false; }
 }
 async function sendBatch(bi){
   const subset=BATCHES[bi].map(i=>ITEMS[i]);
@@ -689,7 +705,7 @@ function markBatchesSent(){
   });
 }
 function updateNetBar(){
-  updateSavedInfo();
+  updateSavedInfo(); updateDbxBar();
   const bar=document.getElementById('netbar'); if(!bar) return;
   const pend=pendingItems().length;
   if(!navigator.onLine){
@@ -714,8 +730,65 @@ function updateSavedInfo(){
   el.innerHTML = '💾 Saved on this iPad · <b>'+set+'</b>/'+ITEMS.length+' set · <b>'+ph+'</b> photo'+(ph!==1?'s':'')
     + (sent?(' · <b>'+sent+'</b> sent'):'');
 }
-window.addEventListener('online', updateNetBar);
+window.addEventListener('online', async ()=>{ updateNetBar();
+  if(dbxConnected() && pendingItems().length){ toast('Back online — uploading pending…'); try{ await uploadPending(); }catch(e){} } });
 window.addEventListener('offline', updateNetBar);
+
+/* ---- Dropbox direct upload (PKCE public client, write-only, App folder) ---- */
+const DBX_APP_KEY="5zazkrif192i4ct";
+function b64url(buf){ let s=btoa(String.fromCharCode.apply(null,new Uint8Array(buf))); return s.replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); }
+function dbxVerifier(){ const a=new Uint8Array(64); crypto.getRandomValues(a); return b64url(a.buffer); }
+async function dbxChallenge(v){ const d=await crypto.subtle.digest('SHA-256', new TextEncoder().encode(v)); return b64url(d); }
+function dbxConnected(){ return !!localStorage.getItem('dbx_refresh'); }
+async function dbxConnect(){
+  const v=dbxVerifier(); localStorage.setItem('dbx_verifier', v);
+  const c=await dbxChallenge(v);
+  const url='https://www.dropbox.com/oauth2/authorize?client_id='+DBX_APP_KEY+'&response_type=code&code_challenge='+c+'&code_challenge_method=S256&token_access_type=offline';
+  window.open(url,'_blank');
+  const w=document.getElementById('dbxCodeWrap'); if(w) w.style.display='block';
+}
+async function dbxSubmitCode(){
+  const el=document.getElementById('dbxCodeInput'); const code=((el&&el.value)||'').trim(); if(!code){ toast('Paste the code first'); return; }
+  const v=localStorage.getItem('dbx_verifier');
+  try{
+    const body=new URLSearchParams({grant_type:'authorization_code', code:code, code_verifier:v, client_id:DBX_APP_KEY});
+    const r=await fetch('https://api.dropboxapi.com/oauth2/token',{method:'POST', body:body});
+    const j=await r.json();
+    if(j.refresh_token){
+      localStorage.setItem('dbx_refresh', j.refresh_token);
+      if(j.access_token){ localStorage.setItem('dbx_access', j.access_token); localStorage.setItem('dbx_exp', String(Date.now()+((j.expires_in||14400)*1000))); }
+      if(el) el.value=''; const w=document.getElementById('dbxCodeWrap'); if(w) w.style.display='none';
+      toast('Dropbox connected ✔'); updateDbxBar(); updateNetBar();
+    } else { toast('Code rejected — tap Connect again'); }
+  }catch(e){ toast('Connect failed — check signal'); }
+}
+async function dbxToken(){
+  const acc=localStorage.getItem('dbx_access'); const exp=+(localStorage.getItem('dbx_exp')||0);
+  if(acc && Date.now()<exp-60000) return acc;
+  const rt=localStorage.getItem('dbx_refresh'); if(!rt) return null;
+  const body=new URLSearchParams({grant_type:'refresh_token', refresh_token:rt, client_id:DBX_APP_KEY});
+  const r=await fetch('https://api.dropboxapi.com/oauth2/token',{method:'POST', body:body});
+  const j=await r.json();
+  if(j.access_token){ localStorage.setItem('dbx_access', j.access_token); localStorage.setItem('dbx_exp', String(Date.now()+((j.expires_in||14400)*1000))); return j.access_token; }
+  return null;
+}
+async function dbxUpload(file){
+  const tok=await dbxToken(); if(!tok) throw new Error('not connected');
+  const arg={path:'/'+file.name, mode:'add', autorename:true, mute:true};
+  const r=await fetch('https://content.dropboxapi.com/2/files/upload',{
+    method:'POST',
+    headers:{'Authorization':'Bearer '+tok,'Dropbox-API-Arg':JSON.stringify(arg),'Content-Type':'application/octet-stream'},
+    body: await file.arrayBuffer()
+  });
+  if(!r.ok) throw new Error('HTTP '+r.status);
+  return r.json();
+}
+function updateDbxBar(){
+  const el=document.getElementById('dbxbar'); if(!el) return;
+  if(dbxConnected()){ el.style.display='none'; }
+  else { el.className='netbar off'; el.style.display='block';
+    el.innerHTML='🔗 Connect Dropbox once so Send uploads automatically. <button onclick="dbxConnect()">Connect</button>'; }
+}
 
 // passcode gate
 const PASSCODE="LEEHWY26";
@@ -730,7 +803,7 @@ try{ if(localStorage.getItem('leehwy_unlocked')==='1') document.getElementById('
 // restore inspector + counts on load
 document.getElementById("inspector").value=state.inspector||"";
 document.getElementById("introCount").textContent=ITEMS.length;
-updateProgress(); updateNetBar(); updateSavedInfo();
+updateProgress(); updateNetBar(); updateSavedInfo(); updateDbxBar();
 </script>
 </body>
 </html>
