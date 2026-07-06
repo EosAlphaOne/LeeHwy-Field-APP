@@ -14,7 +14,7 @@
   :root{
     --green:#2f7d4f; --green-d:#245f3c; --bg:#f4f6f4; --card:#ffffff;
     --ink:#1c2620; --muted:#5f6b63; --line:#e2e7e2;
-    --qa:#2f7d4f; --field:#4da2f8; --attn:#e0912d; --client:#8b5cf6; --na:#9aa4a0;
+    --qa:#2f7d4f; --field:#4da2f8; --attn:#e0912d; --client:#8b5cf6; --na:#9aa4a0; --later:#0d9488;
     --shadow:0 2px 10px rgba(20,40,25,.08);
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -65,10 +65,11 @@
   .sbtn .dot{width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:6px}
   .sbtn.qa .dot{background:var(--qa)} .sbtn.field .dot{background:var(--field)}
   .sbtn.attn .dot{background:var(--attn)} .sbtn.client .dot{background:var(--client)}
-  .sbtn.na .dot{background:var(--na)}
+  .sbtn.na .dot{background:var(--na)} .sbtn.later .dot{background:var(--later)}
   .sbtn.sel.qa{border-color:var(--qa);background:#eaf4ee}
   .sbtn.sel.field{border-color:var(--field);background:#eaf3fd}
   .sbtn.sel.attn{border-color:var(--attn);background:#fdf3e5}
+  .sbtn.sel.later{border-color:var(--later);background:#e4f5f2}
   .sbtn.sel.client{border-color:var(--client);background:#f3eefe}
   .sbtn.sel.na{border-color:var(--na);background:#f0f2f1}
   .sbtn.full{grid-column:1 / -1}
@@ -94,7 +95,7 @@
   .chip{flex:0 0 auto;font-size:11px;font-weight:700;padding:4px 8px;border-radius:999px;color:#fff}
   .chip.none{background:#c8d0cb;color:#465049}
   .chip.qa{background:var(--qa)} .chip.field{background:var(--field)}
-  .chip.attn{background:var(--attn)} .chip.client{background:var(--client)} .chip.na{background:var(--na)}
+  .chip.attn{background:var(--attn)} .chip.client{background:var(--client)} .chip.na{background:var(--na)} .chip.later{background:var(--later)}
   .pcount{flex:0 0 auto;font-size:12px;color:var(--muted);font-weight:600}
   .summary{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:6px 0 14px}
   .stat{background:#f7faf8;border-radius:12px;padding:12px;text-align:center}
@@ -234,6 +235,7 @@ const COLUMNS = {
   qa:     {id:306997, name:"Reviewed/completed/ready for QA"},
   field:  {id:306996, name:"Field Reviewed/currently compliant"},
   attn:   {id:307704, name:"Reviewed/needs attention"},
+  later:  {id:null,   name:"Not installed yet — leave in place (revisit at final)"},
   client: {id:null,   name:"Client/team to provide (flag)"},
   na:     {id:308458, name:"Removed/de-selected"}
 };
@@ -426,8 +428,9 @@ async function render(){
     <div class="statusgrid">
       ${sbtn(it,'field','Field reviewed / compliant','Verified compliant on site')}
       ${sbtn(it,'attn','Reviewed / needs attention','Deficiency or follow-up')}
+      ${sbtn(it,'later','Not installed yet','Leave in place — revisit at final')}
       ${sbtn(it,'client','Client must provide','Can\'t verify here → client list')}
-      ${sbtn(it,'na','N/A · not applicable','Nothing to capture here')}
+      ${sbtn(it,'na','N/A · not applicable','Nothing to capture here',true)}
     </div>
     <div class="banner">QA is set by the PM after review — not from the field.</div>
 
@@ -513,7 +516,7 @@ function updateProgress(){
   const done=ITEMS.filter(it=>isDone(it.code)).length;
   document.getElementById("progbar").style.width=(done/ITEMS.length*100)+"%";
 }
-function chipFor(status){ const m={qa:"QA",field:"Field",attn:"Attn",client:"Client",na:"N/A"};
+function chipFor(status){ const m={qa:"QA",field:"Field",attn:"Attn",later:"Final",client:"Client",na:"N/A"};
   return status? `<span class="chip ${status}">${m[status]}</span>` : `<span class="chip none">—</span>`; }
 function buildList(){
   const body=document.getElementById("listBody"); let html=""; let curSec="";
@@ -583,14 +586,19 @@ async function buildBundleFiles(subset, meta){
   const dateStr=stamp.toISOString().slice(0,10);
   const bundleId = stamp.getTime().toString(36)+"-"+Math.random().toString(36).slice(2,8);
   const prefix = `LeeHwy_${dateStr}_${sanitize(meta.label)}_${bundleId}__`;
+  const SLABEL={field:'COMPLIANT', attn:'NEEDS-ATTN', later:'NOT-INSTALLED', client:'CLIENT-PROVIDE', na:'N-A'};
   const shareFiles=[]; const manifestItems=[]; const clientActions=[]; let missing=0;
   for(const it of subset){
     const gidx = ITEMS.indexOf(it)+1;               // global item number
     const st=state.items[it.code];
-    const photoNames=[];
+    // human-readable photo name: order_code_STATUS_title__date_uniqueid  → sorts in checklist order, self-documenting for QA
+    const stLabel = SLABEL[st.status] || 'UNSET';
+    const titleSlug = sanitize(it.t).slice(0,40);
+    const photoNames=[]; let k=0;
     for(const p of st.photos){
+      k++;
       const blob=await getPhoto(p.id); if(!blob){ missing++; continue; }
-      const fname=`${prefix}${String(gidx).padStart(2,'0')}_${sanitize(it.code)}_${p.id}.jpg`;
+      const fname=`${String(gidx).padStart(2,'0')}_${sanitize(it.code)}_${stLabel}_${titleSlug}__${dateStr}_${bundleId}-${k}.jpg`;
       shareFiles.push(new File([blob], fname, {type:"image/jpeg"}));
       photoNames.push(fname);
     }
@@ -630,7 +638,7 @@ function buildReport(m){
     if(it.section!==sec){ sec=it.section; s+=`\n## ${sec}\n`; }
     s+=`\n### ${it.order}. ${it.code} — ${it.title}\n`;
     s+=`- Tasks: ${it.taskIds.map(id=>"#"+id).join(", ")}\n`;
-    s+=`- Status: **${it.status}**${it.targetColumnId?(" → move to **"+it.targetColumn+"**"):(it.status==="client"?" → FLAG ONLY (client action list; do not move)":"")}\n`;
+    s+=`- Status: **${it.status}**${it.targetColumnId?(" → move to **"+it.targetColumn+"**"):(it.status==="client"?" → FLAG ONLY (client action list; do not move)":(it.status==="later"?" → LEAVE IN PLACE (not installed yet; revisit at final)":""))}\n`;
     s+=`- Photos: ${it.photos.length? it.photos.join(", "):"none"}\n`;
     if(it.note) s+=`- Note: ${it.note}\n`;
   });
