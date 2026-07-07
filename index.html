@@ -171,7 +171,7 @@
     <input id="inspector" type="text" placeholder="Your name" style="width:100%;border:1px solid var(--line);border-radius:12px;padding:12px;font-size:16px">
     <div class="label" style="margin-top:16px">How this works</div>
     <div class="capture-txt">You'll go through <b id="introCount">the</b> applicable pre-rock items one at a time. For each: read what to capture, <b>take photos right here</b> (organized by item so EOS files them to the right Teamwork task — no manual labeling), add a quick note, and set the <b>status</b> (field reviewed / needs attention / client must provide / N/A). Everything saves as you go, even offline.</div>
-    <div class="standard" style="margin-top:14px">Tap Send and each batch <b>uploads straight to Dropbox</b> — one tap, no share sheet (just Connect Dropbox once at the top). Saved on this iPad first, so no signal is fine; it uploads automatically when you're back online. EOS then posts the photos + comments to Teamwork and moves each task.</div>
+    <div class="standard" style="margin-top:14px">Tap Send and each batch <b>uploads straight to Dropbox</b> — one tap, no share sheet, no login. Saved on this iPad first, so no signal is fine; it uploads automatically when you're back online. EOS then posts the photos + comments to Teamwork and moves each task.</div>
   </div>
   <button class="btn-primary" onclick="startWalk()">Start field walk →</button>
   <div style="height:14px"></div>
@@ -756,12 +756,17 @@ window.addEventListener('online', async ()=>{ updateNetBar();
   if(dbxConnected() && pendingItems().length){ toast('Back online — uploading pending…'); try{ await uploadPending(); }catch(e){} } });
 window.addEventListener('offline', updateNetBar);
 
-/* ---- Dropbox direct upload (PKCE public client, write-only, App folder) ---- */
+/* ---- Dropbox direct upload (write-only, App folder) ----
+   CENTRAL INTAKE: every field device uploads to ONE shared account's Apps/EOS Field Intake
+   folder, which EOS reads. The built-in refresh token below is WRITE-ONLY and scoped to that
+   single folder only (it cannot read files or touch anything else in Dropbox). No per-user
+   Connect step — the app is always "connected" via this token. */
 const DBX_APP_KEY="5zazkrif192i4ct";
+const DBX_REFRESH="Ewg7-tZHcJ0AAAAAAAAAAUJm94jDEcAhM6SYfp4ZC8NubJpabMEO3FG7Oev5x4YH";
 function b64url(buf){ let s=btoa(String.fromCharCode.apply(null,new Uint8Array(buf))); return s.replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); }
 function dbxVerifier(){ const a=new Uint8Array(64); crypto.getRandomValues(a); return b64url(a.buffer); }
 async function dbxChallenge(v){ const d=await crypto.subtle.digest('SHA-256', new TextEncoder().encode(v)); return b64url(d); }
-function dbxConnected(){ return !!localStorage.getItem('dbx_refresh'); }
+function dbxConnected(){ return true; }  /* always connected via built-in central token */
 let _dbxAuthUrl='';
 async function dbxEnsureAuthUrl(){
   if(_dbxAuthUrl) return _dbxAuthUrl;
@@ -791,16 +796,15 @@ async function dbxSubmitCode(){
 async function dbxToken(){
   const acc=localStorage.getItem('dbx_access'); const exp=+(localStorage.getItem('dbx_exp')||0);
   if(acc && Date.now()<exp-60000) return acc;
-  const rt=localStorage.getItem('dbx_refresh'); if(!rt) return null;
+  const rt=DBX_REFRESH;  /* built-in central intake token */
   let j={};
   try{
     const r=await fetch('https://api.dropboxapi.com/oauth2/token',{method:'POST', body:new URLSearchParams({grant_type:'refresh_token', refresh_token:rt, client_id:DBX_APP_KEY})});
     j=await r.json();
   }catch(e){ return null; }   // network blip — keep creds, retry later
   if(j.access_token){ localStorage.setItem('dbx_access', j.access_token); localStorage.setItem('dbx_exp', String(Date.now()+((j.expires_in||14400)*1000))); return j.access_token; }
-  // token revoked/invalid → clear creds so the Connect button comes back
-  localStorage.removeItem('dbx_refresh'); localStorage.removeItem('dbx_access'); localStorage.removeItem('dbx_exp');
-  updateDbxBar();
+  // mint failed with built-in token → drop cached access only, retry on next send
+  localStorage.removeItem('dbx_access'); localStorage.removeItem('dbx_exp');
   return null;
 }
 function dbxArg(o){ return JSON.stringify(o).replace(/[-￿]/g, c=>'\\u'+c.charCodeAt(0).toString(16).padStart(4,'0')); }
