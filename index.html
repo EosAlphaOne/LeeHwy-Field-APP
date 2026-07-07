@@ -763,6 +763,10 @@ window.addEventListener('offline', updateNetBar);
    Connect step — the app is always "connected" via this token. */
 const DBX_APP_KEY="5zazkrif192i4ct";
 const DBX_REFRESH="Ewg7-tZHcJ0AAAAAAAAAAUJm94jDEcAhM6SYfp4ZC8NubJpabMEO3FG7Oev5x4YH";
+/* Migration: earlier builds stored a PER-USER Dropbox token in localStorage. This build uploads
+   via the built-in central token instead. Purge any stale per-user creds once, so a device that
+   previously connected its own account (e.g. Brendon's) doesn't keep uploading to that account. */
+try{ if(localStorage.getItem('dbx_mode')!=='central'){ ['dbx_refresh','dbx_access','dbx_exp','dbx_pv','dbx_pc','dbx_verifier'].forEach(function(k){ localStorage.removeItem(k); }); localStorage.setItem('dbx_mode','central'); } }catch(_){ }
 function b64url(buf){ let s=btoa(String.fromCharCode.apply(null,new Uint8Array(buf))); return s.replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); }
 function dbxVerifier(){ const a=new Uint8Array(64); crypto.getRandomValues(a); return b64url(a.buffer); }
 async function dbxChallenge(v){ const d=await crypto.subtle.digest('SHA-256', new TextEncoder().encode(v)); return b64url(d); }
