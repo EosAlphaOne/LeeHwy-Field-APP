@@ -50,6 +50,10 @@
   .thumb img{width:100%;height:100%;object-fit:cover;display:block}
   .thumb .del{position:absolute;top:4px;right:4px;background:rgba(0,0,0,.6);color:#fff;border:0;
     width:26px;height:26px;border-radius:50%;font-size:15px;line-height:1;display:flex;align-items:center;justify-content:center}
+  .thumb .uptile{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+    font-size:22px;font-weight:800;color:var(--green);background:#eaf4ee}
+  .thumb .uptile span{font-size:10px;font-weight:700;letter-spacing:.03em;text-transform:uppercase}
+  .thumb .uptile.lost{color:#c0392b;background:#fdecea}
   .addphoto{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;
     border:2px dashed var(--green);color:var(--green);background:#f2f8f4;border-radius:12px;
     padding:16px;font-size:16px;font-weight:700;margin-top:8px}
@@ -204,6 +208,7 @@
   <div class="card">
     <h1 class="itemtitle" style="font-size:20px">Review &amp; Send</h1>
     <div class="summary" id="reviewSummary"></div>
+    <div id="verifyWrap"></div>
     <div id="incompleteWrap"></div>
     <div class="label">Send by batch (recommended)</div>
     <div id="batchList"></div>
@@ -382,9 +387,35 @@ function db(){ return new Promise((res,rej)=>{
   r.onsuccess=e=>{ _db=e.target.result; res(_db); };
   r.onerror=e=>rej(e);
 });}
-async function putPhoto(id, blob){ const d=await db(); return new Promise((res,rej)=>{
-  const tx=d.transaction("photos","readwrite"); tx.objectStore("photos").put({id,blob});
-  tx.oncomplete=res; tx.onerror=rej; }); }
+async function putPhotoRaw(id, blob){ const d=await db(); return new Promise((res,rej)=>{
+  let tx; try{ tx=d.transaction("photos","readwrite"); }catch(e){ rej(e); return; }
+  tx.oncomplete=res; tx.onerror=()=>rej(tx.error||new Error('tx')); tx.onabort=()=>rej(tx.error||new Error('abort'));
+  try{ tx.objectStore("photos").put({id,blob}); }catch(e){ rej(e); } }); }
+/* Locate a photo record by id (across all items). */
+function photoRec(code,id){ const st=state.items[code]; if(!st) return null; return st.photos.find(p=>p.id===id)||null; }
+/* Extract the capture timestamp embedded in a photo id ("code_<ms>_rand") for oldest-first ordering. */
+function photoTs(id){ const m=String(id).match(/_(\d{9,})_/); return m?+m[1]:0; }
+/* Photos that are already safely uploaded to Dropbox AND still hold a local blob — safe to evict under storage pressure, oldest first. */
+function uploadedEvictable(){
+  const list=[];
+  ITEMS.forEach(it=>{ const st=state.items[it.code];
+    st.photos.forEach(p=>{ if(p.uploaded && !p.evicted) list.push({id:p.id, p:p}); }); });
+  list.sort((a,b)=> photoTs(a.id)-photoTs(b.id));
+  return list;
+}
+/* Quota-safe put: on storage pressure, free already-uploaded blobs (they're safe in Dropbox) oldest-first and retry.
+   Returns true only if the blob is actually stored; NEVER drops an un-uploaded photo to make room. */
+async function putPhoto(id, blob){
+  try{ await putPhotoRaw(id, blob); return true; }
+  catch(e){
+    const evictable=uploadedEvictable();
+    for(const ev of evictable){
+      try{ await delPhoto(ev.id); ev.p.evicted=true; }catch(_){}
+      try{ await putPhotoRaw(id, blob); return true; }catch(_){ /* keep freeing */ }
+    }
+    return false;   // nothing safe left to evict → honest failure (caller surfaces it)
+  }
+}
 async function getPhoto(id){ const d=await db(); return new Promise((res,rej)=>{
   const tx=d.transaction("photos","readonly"); const rq=tx.objectStore("photos").get(id);
   rq.onsuccess=()=>res(rq.result?rq.result.blob:null); rq.onerror=rej; }); }
@@ -482,26 +513,37 @@ async function drawPhotos(code){
   const st=state.items[code]; wrap.innerHTML="";
   document.getElementById("pc").textContent = st.photos.length?("· "+st.photos.length):"";
   for(const p of st.photos){
-    const blob=await getPhoto(p.id); if(!blob) continue;
-    const url=URL.createObjectURL(blob); _photoUrls.push(url);
+    const blob=await getPhoto(p.id);
     const d=document.createElement("div"); d.className="thumb";
-    d.innerHTML=`<img src="${url}"><button class="del" onclick="removePhoto('${code}','${p.id}')">✕</button>`;
+    if(blob){
+      const url=URL.createObjectURL(blob); _photoUrls.push(url);
+      d.innerHTML=`<img src="${url}"><button class="del" onclick="removePhoto('${code}','${p.id}')">✕</button>`;
+    } else if(p.uploaded){
+      // blob was freed after a confirmed Dropbox upload to make room — the photo is safe
+      d.innerHTML=`<div class="uptile">✓<span>Uploaded</span></div>`;
+    } else {
+      // blob missing and NOT uploaded → a genuine loss; show it loudly instead of hiding it
+      d.innerHTML=`<div class="uptile lost">⚠<span>Missing</span></div><button class="del" onclick="removePhoto('${code}','${p.id}')">✕</button>`;
+    }
     wrap.appendChild(d);
   }
 }
 async function onFiles(e){
   const files=[...e.target.files]; e.target.value="";
   const st=state.items[ITEMS[idx].code];
+  let ok=0, fail=0;
   for(const f of files){
     try{
       const blob=await downscale(f);
       const id=ITEMS[idx].code.replace(/[^a-z0-9]/gi,'')+"_"+Date.now()+"_"+Math.random().toString(36).slice(2,6);
-      await putPhoto(id, blob);
-      st.photos.push({id, size:blob.size});
-    }catch(err){ toast("Couldn't add a photo"); }
+      const stored=await putPhoto(id, blob);
+      if(stored){ st.photos.push({id, size:blob.size, uploaded:false}); ok++; }
+      else { fail++; }
+    }catch(err){ fail++; }
   }
   touchItem(ITEMS[idx].code); saveState(); await drawPhotos(ITEMS[idx].code); updateProgress(); updateNetBar();
-  toast(files.length+" photo"+(files.length>1?"s":"")+" added");
+  if(fail>0){ toast("⚠ "+ok+" saved, "+fail+" FAILED (storage full). Tap Send on a batch to free space, then re-take."); }
+  else { toast(ok+" photo"+(ok!==1?"s":"")+" added"); }
 }
 async function removePhoto(code,id){
   const st=state.items[code]; st.photos=st.photos.filter(p=>p.id!==id);
@@ -543,7 +585,28 @@ function buildList(){
 
 /* ============================ REVIEW ============================ */
 function showReview(){ document.getElementById("siteNote").value=state.siteNote||"";
-  buildReview(); show("reviewScreen"); }
+  buildReview(); renderVerify(); show("reviewScreen"); }
+/* Verify-on-send: reconcile every photo record against what's actually stored/uploaded, so a lost
+   photo is caught on-site (in Review, before leaving) rather than in the office. */
+async function verifyStored(){
+  let expected=0, present=0, uploaded=0; const lost=[];
+  for(const it of ITEMS){ const st=state.items[it.code];
+    for(const p of st.photos){ expected++;
+      const blob=await getPhoto(p.id);
+      if(blob) present++; else if(p.uploaded) uploaded++; else lost.push(it.code);
+    } }
+  return {expected, present, uploaded, lost};
+}
+async function renderVerify(){
+  const el=document.getElementById('verifyWrap'); if(!el) return;
+  const v=await verifyStored();
+  if(v.lost.length){
+    const codes=[...new Set(v.lost)].join(", ");
+    el.innerHTML=`<div class="standard advisory" style="margin-bottom:12px">⚠ <b>${v.lost.length} photo${v.lost.length>1?'s':''} could not be recovered</b> on this iPad (storage filled during capture): <b>${codes}</b>. Re-take ${v.lost.length>1?'them':'it'} before you leave the site.</div>`;
+  } else if(v.expected){
+    el.innerHTML=`<div class="standard" style="margin-bottom:12px">✅ All <b>${v.expected}</b> photo${v.expected!==1?'s':''} accounted for${v.uploaded?` (${v.uploaded} already uploaded, ${v.present} on iPad ready to send)`:''}.</div>`;
+  } else { el.innerHTML=""; }
+}
 function hideReview(){ show("itemScreen"); render(); }
 document.getElementById("siteNote")?.addEventListener("input",e=>{state.siteNote=e.target.value;saveState();});
 
@@ -603,12 +666,15 @@ async function buildBundleFiles(subset, meta){
     // human-readable photo name: order_code_STATUS_title__date_uniqueid  → sorts in checklist order, self-documenting for QA
     const stLabel = SLABEL[st.status] || 'UNSET';
     const titleSlug = sanitize(it.t).slice(0,40);
-    const photoNames=[]; let k=0;
+    const photoNames=[]; let k=0, carried=0;
     for(const p of st.photos){
+      const blob=await getPhoto(p.id);
+      if(!blob){ if(p.uploaded) carried++; else missing++; continue; }  // carried = already in Dropbox (blob freed); missing = genuine loss
       k++;
-      const blob=await getPhoto(p.id); if(!blob){ missing++; continue; }
       const fname=`${String(gidx).padStart(2,'0')}_${sanitize(it.code)}_${stLabel}_${titleSlug}__${dateStr}_${bundleId}-${k}.jpg`;
-      shareFiles.push(new File([blob], fname, {type:"image/jpeg"}));
+      const file=new File([blob], fname, {type:"image/jpeg"});
+      file._ref={code:it.code, id:p.id};   // link file back to its photo record so upload can be confirmed
+      shareFiles.push(file);
       photoNames.push(fname);
     }
     const col = st.status? COLUMNS[st.status] : null;
@@ -617,7 +683,7 @@ async function buildBundleFiles(subset, meta){
       taskIds:it.ids, taskLinks:it.ids.map(id=>TW+id),
       status:st.status||"unset",
       targetColumn: col?col.name:null, targetColumnId: col?col.id:null,
-      note:st.note||"", photos:photoNames, advisory: !!it.adv
+      note:st.note||"", photos:photoNames, photosCarriedFromEarlierSend:carried, advisory: !!it.adv
     };
     manifestItems.push(rec);
     if(st.status==="client") clientActions.push(rec);
@@ -627,7 +693,7 @@ async function buildBundleFiles(subset, meta){
     generatedAt:stamp.toISOString(), siteNote:state.siteNote||"", photosMissing:missing,
     filePrefix:prefix,
     bundle:{partial:meta.partial, label:meta.label, itemCodes:subset.map(x=>x.code), totalItems:ITEMS.length},
-    dedupeRule:"If a later bundle repeats an item already posted, REPLACE that item's photos/comment — do not append. Later generatedAt wins. Photo files are uniquely named.",
+    dedupeRule:"If a later bundle repeats an item already posted, REPLACE that item's comment/status and ADD its new photos. Later generatedAt wins. Photo files are uniquely named. IMPORTANT: never delete photos already uploaded for an item in an earlier bundle — if photosCarriedFromEarlierSend > 0, that item has additional photos in this intake folder from a prior batch that are NOT re-listed here; keep them.",
     columnMap:COLUMNS, items:manifestItems, clientActions
   };
   // manifest first, then a human-readable report, then photos
@@ -665,8 +731,14 @@ async function shipBundle(subset, meta, onSent){
       if(!navigator.onLine){ toast("Offline — saved on iPad; uploads when back online"); return false; }
       try{
         toast("Uploading "+shareFiles.length+" files…");
-        for(const f of shareFiles){ await dbxUpload(f); }
-        toast("Uploaded to Dropbox ✔"+(missing?(" ("+missing+" missing)"):""));
+        for(const f of shareFiles){
+          await dbxUpload(f);
+          // confirmed in Dropbox → mark + persist immediately, so a mid-batch drop on flaky signal
+          // still records what already uploaded (keeps those blobs evictable; avoids needless re-sends)
+          if(f._ref){ const rp=photoRec(f._ref.code, f._ref.id); if(rp){ rp.uploaded=true; saveState(); } }
+        }
+        saveState();
+        toast(missing? ("Uploaded ✔ — ⚠ "+missing+" photo"+(missing>1?"s":"")+" LOST on iPad, re-take before leaving") : ("Uploaded to Dropbox ✔"));
         if(onSent)onSent(); return true;
       }catch(e){ toast("Upload didn't finish — will retry when online"); return false; }
     }
@@ -689,16 +761,16 @@ async function sendBatch(bi){
     saveState();
   });
   if(ok){ updateBatchSub(bi); updateNetBar();
-    if(!document.getElementById('reviewScreen').classList.contains('hidden')) buildReview(); }
+    if(!document.getElementById('reviewScreen').classList.contains('hidden')){ buildReview(); renderVerify(); } }
 }
 async function exportBundle(){   // "Send all remaining" — only items not yet sent (never re-sends already-posted items)
   const subset=pendingItems();
   if(!subset.length){ toast("Nothing left to send"); return; }
   const ok=await shipBundle(subset, {partial:true, label:"all-unsent"}, ()=>{
     subset.forEach(it=>{ state.items[it.code].sent=true; });
-    markBatchesSent(); saveState(); buildReview(); updateNetBar();
+    markBatchesSent(); saveState(); buildReview(); renderVerify(); updateNetBar();
   });
-  if(!ok){ updateNetBar(); buildReview(); }
+  if(!ok){ updateNetBar(); buildReview(); renderVerify(); }
 }
 async function downloadBundle(){
   toast("Packaging…");
@@ -743,7 +815,7 @@ async function uploadPending(){
   await shipBundle(subset, {partial:true, label:'pending'}, ()=>{
     subset.forEach(it=>{ state.items[it.code].sent=true; });
     markBatchesSent(); saveState(); updateNetBar();
-    if(!document.getElementById('reviewScreen').classList.contains('hidden')) buildReview();
+    if(!document.getElementById('reviewScreen').classList.contains('hidden')){ buildReview(); renderVerify(); }
   });
 }
 function updateSavedInfo(){
