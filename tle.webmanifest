@@ -1,0 +1,14 @@
+{
+  "name": "TLE Alexandria Final Inspection",
+  "short_name": "TLE Final",
+  "start_url": "./tle-alexandria.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#1f4e79",
+  "theme_color": "#1f4e79",
+  "icons": [
+    {"src": "tle-icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable"},
+    {"src": "tle-icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable"}
+  ]
+}

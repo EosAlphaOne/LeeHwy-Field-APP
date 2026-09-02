@@ -4,10 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#1f4e79">
 <title>TLE Alexandria · Final Inspection</title>
-<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="manifest" href="tle.webmanifest">
+<link rel="apple-touch-icon" href="tle-icon-192.png">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="TLE Final">
+<script>if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){});});}</script>
 <style>
   :root{
     --green:#2f7d4f; --green-d:#245f3c; --bg:#f4f6f4; --card:#ffffff;
