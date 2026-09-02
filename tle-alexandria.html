@@ -1,0 +1,927 @@
+TESTLINE123
+SECOND<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>TLE Alexandria · Final Inspection</title>
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Pre-Rock">
+<style>
+  :root{
+    --green:#2f7d4f; --green-d:#245f3c; --bg:#f4f6f4; --card:#ffffff;
+    --ink:#1c2620; --muted:#5f6b63; --line:#e2e7e2;
+    --qa:#2f7d4f; --field:#4da2f8; --attn:#e0912d; --client:#8b5cf6; --na:#9aa4a0; --later:#0d9488;
+    --shadow:0 2px 10px rgba(20,40,25,.08);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    -webkit-text-size-adjust:100%}
+  body{padding-bottom:calc(96px + env(safe-area-inset-bottom))}
+  .hidden{display:none !important}
+  /* Header */
+  header{position:sticky;top:0;z-index:20;background:var(--green);color:#fff;
+    padding:calc(10px + env(safe-area-inset-top)) 16px 10px;display:flex;align-items:center;gap:12px;box-shadow:var(--shadow)}
+  header .title{font-weight:700;font-size:16px;line-height:1.15;flex:1}
+  header .title small{display:block;font-weight:500;opacity:.85;font-size:12px}
+  header button{background:rgba(255,255,255,.16);border:0;color:#fff;font-weight:600;
+    padding:9px 14px;border-radius:10px;font-size:14px}
+  .progwrap{height:6px;background:rgba(0,0,0,.08)}
+  .progbar{height:6px;background:var(--green-d);width:0;transition:width .25s}
+  /* Layout */
+  main{max-width:820px;margin:0 auto;padding:16px}
+  .card{background:var(--card);border-radius:16px;box-shadow:var(--shadow);padding:18px;margin-bottom:16px}
+  .sect{display:inline-block;font-size:12px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;
+    color:var(--green);background:#e8f2ec;padding:4px 10px;border-radius:999px;margin-bottom:10px}
+  .code{font-size:13px;color:var(--muted);font-weight:600;margin-bottom:2px}
+  h1.itemtitle{font-size:22px;line-height:1.2;margin:2px 0 12px}
+  .label{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin:14px 0 6px}
+  .capture-txt{font-size:15.5px;line-height:1.5}
+  .standard{font-size:14.5px;line-height:1.5;background:#f7faf8;border-left:3px solid var(--green);
+    padding:10px 12px;border-radius:8px;color:#2a3830}
+  .advisory{background:#fff7e9;border-left-color:var(--attn);color:#6b4e17}
+  /* Photos */
+  .photos{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:10px;margin-top:8px}
+  .thumb{position:relative;aspect-ratio:1;border-radius:10px;overflow:hidden;background:#eee;border:1px solid var(--line)}
+  .thumb img{width:100%;height:100%;object-fit:cover;display:block}
+  .thumb .del{position:absolute;top:4px;right:4px;background:rgba(0,0,0,.6);color:#fff;border:0;
+    width:26px;height:26px;border-radius:50%;font-size:15px;line-height:1;display:flex;align-items:center;justify-content:center}
+  .thumb .uptile{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+    font-size:22px;font-weight:800;color:var(--green);background:#eaf4ee}
+  .thumb .uptile span{font-size:10px;font-weight:700;letter-spacing:.03em;text-transform:uppercase}
+  .thumb .uptile.lost{color:#c0392b;background:#fdecea}
+  .addphoto{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;
+    border:2px dashed var(--green);color:var(--green);background:#f2f8f4;border-radius:12px;
+    padding:16px;font-size:16px;font-weight:700;margin-top:8px}
+  .addphoto svg{width:22px;height:22px}
+  input[type=file]{display:none}
+  textarea{width:100%;border:1px solid var(--line);border-radius:12px;padding:12px;font-size:16px;
+    font-family:inherit;min-height:70px;resize:vertical;background:#fff;color:var(--ink)}
+  /* Status buttons */
+  .statusgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}
+  .statusgrid .sbtn{padding:14px 10px;border-radius:12px;border:2px solid var(--line);background:#fff;
+    font-size:15px;font-weight:700;color:var(--ink);text-align:left;display:flex;flex-direction:column;gap:2px}
+  .sbtn small{font-weight:500;font-size:11.5px;color:var(--muted)}
+  .sbtn .dot{width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:6px}
+  .sbtn.qa .dot{background:var(--qa)} .sbtn.field .dot{background:var(--field)}
+  .sbtn.attn .dot{background:var(--attn)} .sbtn.client .dot{background:var(--client)}
+  .sbtn.na .dot{background:var(--na)} .sbtn.later .dot{background:var(--later)}
+  .sbtn.sel.qa{border-color:var(--qa);background:#eaf4ee}
+  .sbtn.sel.field{border-color:var(--field);background:#eaf3fd}
+  .sbtn.sel.attn{border-color:var(--attn);background:#fdf3e5}
+  .sbtn.sel.later{border-color:var(--later);background:#e4f5f2}
+  .sbtn.sel.client{border-color:var(--client);background:#f3eefe}
+  .sbtn.sel.na{border-color:var(--na);background:#f0f2f1}
+  .sbtn.full{grid-column:1 / -1}
+  /* Nav */
+  .nav{position:sticky;bottom:calc(34px + env(safe-area-inset-bottom));z-index:15;background:var(--card);border-top:1px solid var(--line);
+    display:flex;align-items:center;gap:12px;padding:10px 16px;max-width:820px;margin:0 auto}
+  .savedbar{position:fixed;left:0;right:0;bottom:0;z-index:40;background:#245f3c;color:#fff;
+    font-size:12px;font-weight:600;text-align:center;padding:6px 12px calc(6px + env(safe-area-inset-bottom));line-height:1.35}
+  .savedbar b{color:#bfe6cd}
+  .nav button{flex:1;padding:15px;border-radius:12px;border:0;font-size:16px;font-weight:700}
+  .nav .prev{background:#eef1ee;color:var(--ink)}
+  .nav .next{background:var(--green);color:#fff}
+  .nav .counter{flex:0 0 auto;font-size:14px;color:var(--muted);font-weight:600;min-width:64px;text-align:center}
+  /* Intro / list / review */
+  .btn-primary{background:var(--green);color:#fff;border:0;padding:16px;border-radius:12px;font-size:17px;font-weight:700;width:100%}
+  .btn-ghost{background:#eef1ee;color:var(--ink);border:0;padding:14px;border-radius:12px;font-size:15px;font-weight:700;width:100%}
+  .listrow{display:flex;align-items:center;gap:12px;padding:12px 6px;border-bottom:1px solid var(--line)}
+  .listrow:last-child{border-bottom:0}
+  .listrow .n{flex:0 0 30px;height:30px;border-radius:50%;background:#eef1ee;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:var(--muted)}
+  .listrow .meta{flex:1;min-width:0}
+  .listrow .meta b{display:block;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .listrow .meta span{font-size:12.5px;color:var(--muted)}
+  .chip{flex:0 0 auto;font-size:11px;font-weight:700;padding:4px 8px;border-radius:999px;color:#fff}
+  .chip.none{background:#c8d0cb;color:#465049}
+  .chip.qa{background:var(--qa)} .chip.field{background:var(--field)}
+  .chip.attn{background:var(--attn)} .chip.client{background:var(--client)} .chip.na{background:var(--na)} .chip.later{background:var(--later)}
+  .pcount{flex:0 0 auto;font-size:12px;color:var(--muted);font-weight:600}
+  .summary{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:6px 0 14px}
+  .stat{background:#f7faf8;border-radius:12px;padding:12px;text-align:center}
+  .stat b{display:block;font-size:26px;color:var(--green)} .stat span{font-size:12px;color:var(--muted)}
+  .clientitem{background:#f3eefe;border-radius:10px;padding:10px 12px;margin-bottom:8px;font-size:14px}
+  .clientitem b{color:#5b3fb0}
+  .batchbox{margin-top:16px;background:#f2f8f4;border:1px solid #d6e6dc;border-radius:14px;padding:14px}
+  .batchhead{font-weight:700;font-size:14px;color:var(--green-d)}
+  .batchsub{font-size:12.5px;color:var(--muted);margin:4px 0 10px}
+  .btn-batch{width:100%;background:var(--green);color:#fff;border:0;padding:14px;border-radius:12px;font-size:16px;font-weight:700}
+  .batchrow{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}
+  .batchrow:last-child{border-bottom:0}
+  .batchrow .bmeta{flex:1;min-width:0}
+  .batchrow .bmeta b{font-size:14.5px}
+  .batchrow .bmeta span{display:block;font-size:12px;color:var(--muted)}
+  .btn-send-sm{flex:0 0 auto;background:var(--green);color:#fff;border:0;padding:11px 16px;border-radius:10px;font-size:14px;font-weight:700}
+  .btn-send-sm.sent{background:#eaf4ee;color:var(--green-d);border:1px solid #cfe6d8}
+  .banner{font-size:13px;color:var(--muted);line-height:1.5;margin-top:8px}
+  .toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%);background:#1c2620;color:#fff;
+    padding:12px 18px;border-radius:12px;font-size:14px;z-index:50;box-shadow:var(--shadow);opacity:0;transition:opacity .2s;pointer-events:none;max-width:90%}
+  .toast.show{opacity:1}
+  a.tw{color:var(--green);font-size:13px;text-decoration:none;font-weight:600}
+  .lock{position:fixed;inset:0;z-index:100;background:var(--green);display:flex;align-items:center;justify-content:center;padding:24px}
+  .lock.hidden{display:none}
+  .lockcard{background:#fff;border-radius:18px;padding:26px 22px;max-width:360px;width:100%;text-align:center;box-shadow:var(--shadow)}
+  .locklogo{font-size:34px}
+  .lockcard h1{color:var(--green-d);font-size:20px;margin:6px 0 4px}
+  .lockcard p{color:var(--muted);font-size:14px;margin:0 0 16px}
+  .lockcard input{width:100%;border:1px solid var(--line);border-radius:12px;padding:14px;font-size:17px;text-align:center;letter-spacing:.06em}
+  .lockcard button{width:100%;background:var(--green);color:#fff;border:0;padding:14px;border-radius:12px;font-size:16px;font-weight:700;margin-top:12px}
+  .lockmsg{color:#c0392b;font-size:13px;margin-top:10px;min-height:16px}
+  .netbar{display:none;font-size:13px;line-height:1.4;padding:8px 14px;text-align:center}
+  .netbar.off{background:#fdf3e5;color:#6b4e17}
+  .netbar.on{background:#eaf4ee;color:#245f3c}
+  .netbar button{margin-left:8px;background:var(--green);color:#fff;border:0;padding:6px 12px;border-radius:8px;font-size:13px;font-weight:700}
+</style>
+</head>
+<body>
+
+<div id="lockScreen" class="lock">
+  <div class="lockcard">
+    <div class="locklogo">🔒</div>
+    <h1>TLE Final Inspection</h1>
+    <p>Enter the team passcode to open the field app.</p>
+    <input id="lockInput" type="password" inputmode="text" autocomplete="off" placeholder="Passcode" onkeydown="if(event.key==='Enter')tryUnlock()">
+    <button onclick="tryUnlock()">Unlock</button>
+    <div id="lockMsg" class="lockmsg"></div>
+  </div>
+</div>
+
+<header>
+  <div class="title">TLE Alexandria · Final <small id="hsub">Final / completion inspection</small></div>
+  <button id="reviewBtn" onclick="showReview()">Review &amp; Send</button>
+</header>
+<div class="progwrap"><div class="progbar" id="progbar"></div></div>
+<div class="netbar" id="netbar"></div>
+<div class="netbar" id="dbxbar"></div>
+<div id="dbxCodeWrap" style="display:none;padding:10px 14px;background:#eef4f0;text-align:center;font-size:13px;color:#2a3830">
+  Tap <b>Connect Dropbox</b> above → approve in Dropbox → copy the code it shows → come back here and paste it:
+  <div style="display:flex;gap:8px;max-width:440px;margin:8px auto 0">
+    <input id="dbxCodeInput" type="text" autocomplete="off" placeholder="Paste Dropbox code" style="flex:1;border:1px solid var(--line);border-radius:8px;padding:9px;font-size:14px">
+    <button onclick="dbxSubmitCode()" style="background:var(--green);color:#fff;border:0;border-radius:8px;padding:9px 14px;font-weight:700">Connect</button>
+  </div>
+</div>
+
+<!-- INTRO -->
+<main id="introScreen">
+  <div class="card">
+    <div class="sect">The Learning Experience</div>
+    <h1 class="itemtitle" style="margin-bottom:6px">Final Inspection Walk</h1>
+    <div class="banner">The Learning Experience — Alexandria, VA · EarthCraft Light Commercial (ECLC v2.1)</div>
+    <div class="label">Inspector</div>
+    <input id="inspector" type="text" placeholder="Your name" style="width:100%;border:1px solid var(--line);border-radius:12px;padding:12px;font-size:16px">
+    <div class="label" style="margin-top:16px">How this works</div>
+    <div class="capture-txt">You'll go through <b id="introCount">the</b> applicable final-inspection items one at a time. For each: read what to capture, <b>take photos right here</b> (organized by item so EOS files them to the right Teamwork task — no manual labeling), add a quick note, and set the <b>status</b> (field reviewed / needs attention / client must provide / N/A). Everything saves as you go, even offline.</div>
+    <div class="standard" style="margin-top:14px">Tap Send and each batch <b>uploads straight to Dropbox</b> — one tap, no share sheet, no login. Saved on this iPad first, so no signal is fine; it uploads automatically when you're back online. EOS then posts the photos + comments to Teamwork and moves each task.</div>
+  </div>
+  <button class="btn-primary" onclick="startWalk()">Start field walk →</button>
+  <div style="height:14px"></div>
+  <button class="btn-ghost" onclick="showList()">Jump to a specific item</button>
+  <div style="height:14px"></div>
+  <button class="btn-ghost" onclick="newVisit()" style="color:#c0392b">↺ Start new visit (clear this iPad)</button>
+</main>
+
+<!-- ITEM -->
+<main id="itemScreen" class="hidden">
+  <div class="card" id="itemCard"><!-- filled by render --></div>
+</main>
+<div class="nav hidden" id="itemNav">
+  <button class="prev" onclick="go(-1)">‹ Prev</button>
+  <div class="counter" id="counter">1 / 1</div>
+  <button class="next" onclick="go(1)">Next ›</button>
+</div>
+
+<!-- LIST -->
+<main id="listScreen" class="hidden">
+  <div class="card">
+    <h1 class="itemtitle" style="font-size:19px">All items</h1>
+    <div id="listBody"></div>
+  </div>
+  <button class="btn-ghost" onclick="backFromList()">← Back</button>
+</main>
+
+<!-- REVIEW -->
+<main id="reviewScreen" class="hidden">
+  <div class="card">
+    <h1 class="itemtitle" style="font-size:20px">Review &amp; Send</h1>
+    <div class="summary" id="reviewSummary"></div>
+    <div id="verifyWrap"></div>
+    <div id="incompleteWrap"></div>
+    <div class="label">Send by batch (recommended)</div>
+    <div id="batchList"></div>
+    <div class="label" style="margin-top:16px">Client / project-team action list</div>
+    <div id="clientList"></div>
+    <div class="label" style="margin-top:14px">Overall site note (optional)</div>
+    <textarea id="siteNote" placeholder="Anything the office should know about this visit…"></textarea>
+  </div>
+  <button class="btn-ghost" onclick="exportBundle()">📤 Send all remaining (unsent)</button>
+  <div class="banner" style="text-align:center;margin-top:6px">Sending by batch (above) is more reliable on iPad than one big send.</div>
+  <div style="height:10px"></div>
+  <button class="btn-ghost" onclick="downloadBundle()">Download all files instead</button>
+  <div style="height:12px"></div>
+  <button class="btn-ghost" onclick="hideReview()">← Keep editing</button>
+  <div class="banner" style="text-align:center;margin-top:14px">Photos never leave this iPad until you tap Send. No Teamwork login needed.</div>
+</main>
+
+<div class="toast" id="toast"></div>
+<div class="savedbar" id="savedBar"></div>
+
+<script>
+/* ============================ DATA ============================ */
+const PROJECT = {
+  name:"The Learning Experience — Alexandria", projectId:1034382,
+  address:"Alexandria, VA",
+  program:"ECLC v2.1", stage:"Final / Completion Inspection"
+};
+const TW="https://ecovativeenergy.teamwork.com/app/tasks/";
+// status -> board column mapping (Teamwork workflow 49174)
+const COLUMNS = {
+  qa:     {id:306997, name:"Reviewed/completed/ready for QA"},
+  field:  {id:306996, name:"Field Reviewed/currently compliant"},
+  attn:   {id:307704, name:"Reviewed/needs attention"},
+  later:  {id:null,   name:"Not installed yet — leave in place (revisit at final)"},
+  client: {id:null,   name:"Client/team to provide (flag)"},
+  na:     {id:308458, name:"Removed/de-selected"}
+};
+const ITEMS = [
+ {c:"Performance Tests", code:"BE R3", ids:[38886827], t:"Envelope air-tightness (blower door) test",
+  cap:"Blower-door test in progress: fan in the door, manometer reading, and the printed/screen result. Photograph the setup and the final ELR75 number.",
+  std:"Requirement. Envelope air-tightness performance test must be conducted and pass per ECLC v2.1. This is the compliance test."},
+ {c:"Performance Tests", code:"IEQ R7", ids:[38886802], t:"Third-party Test & Balance report",
+  cap:"Photograph the T&B contractor on site and/or the completed Test & Balance report cover page (AABC or NEBB certified firm).",
+  std:"Requirement. Third-party test and balance of the HVAC system by a certified T&B agency."},
+ {c:"Performance Tests", code:"IEQ R9", ids:[38886804], t:"Indoor air flush-out before occupancy",
+  cap:"Evidence the flush-out is underway or complete: fans/filters set for flush-out, dated log, or contractor confirmation.",
+  std:"Requirement. Building flushed with outside air prior to occupancy."},
+ {c:"HVAC & IAQ", code:"IEQ R2", ids:[38886787], t:"Automatic exhaust controls",
+  cap:"Exhaust fans installed with their automatic controls (timer / occupancy sensor). Show the control device.",
+  std:"Requirement. Automatic shut-off controls on all exhaust when the space is unoccupied."},
+ {c:"HVAC & IAQ", code:"IEQ R3.1", ids:[38886789], t:"MERV 8+ filter installed",
+  cap:"Installed filter with the MERV rating visible on the frame.",
+  std:"Requirement. Minimum MERV 8 filtration installed."},
+ {c:"HVAC & IAQ", code:"IEQ 3", ids:[38886811], t:"MERV 11+ filtration (credit)",
+  cap:"If installed to a higher grade: filter frame showing MERV 11 or higher.",
+  std:"Credit (1 pt). MERV 11 or higher filtration media."},
+ {c:"HVAC & IAQ", code:"IEQ R3.2", ids:[38886790], t:"Outside-air intake siting",
+  cap:"Outside-air intake location relative to roof and any contaminant sources.",
+  std:"Requirement. Intakes located away from contaminant sources."},
+ {c:"HVAC & IAQ", code:"IEQ R3.4", ids:[38886792], t:"Air handler accessible & labeled",
+  cap:"AHU access clearance and the label on each AHU / condensing unit / thermostat.",
+  std:"Requirement. Air handler accessible and uniquely labeled."},
+ {c:"HVAC & IAQ", code:"IEQ R5", ids:[38886800], t:"Safe / sealed combustion",
+  cap:"Any gas-fired equipment: venting and combustion-air source (sealed / direct-vent).",
+  std:"Requirement. Sealed or direct-vent combustion with outside air."},
+ {c:"HVAC & IAQ", code:"IEQ R6", ids:[38886801], t:"Building positive pressure",
+  cap:"Commissioning/balancing evidence the building runs at positive pressure (report or gauge).",
+  std:"Requirement. Building designed and verified for positive pressure."},
+ {c:"HVAC & IAQ", code:"ES R5", ids:[38886854], t:"Right-sized equipment (nameplate)",
+  cap:"Nameplate of the installed heating and cooling equipment (model + capacity).",
+  std:"Requirement. Right-sized heating/cooling equipment or variable-capacity system."},
+ {c:"HVAC & IAQ", code:"ES 1C", ids:[38886858], t:"Cooling efficiency (credit)",
+  cap:"Cooling equipment nameplate showing SEER/EER.",
+  std:"Credit (3 pts). Cooling efficiency meets the ECLC v2.1 chart."},
+ {c:"HVAC & IAQ", code:"ES R4", ids:[38886853], t:"Duct system requirements",
+  cap:"Ductwork: sealed seams (mastic), insulation, supports, no building cavities used as ducts.",
+  std:"Requirement. Ducts sealed and insulated."},
+ {c:"HVAC & IAQ", code:"IEQ 4A", ids:[38886813], t:"Radon test after completion (credit)",
+  cap:"Radon test device placed / results after substantial completion.",
+  std:"Credit (1 pt). Radon test after substantial completion."},
+ {c:"Plumbing & Water", code:"WE R1", ids:[38886725], t:"WaterSense fixtures installed",
+  cap:"Installed lav faucets and flush valves — photograph the WaterSense label / model + flow rating.",
+  std:"Requirement. WaterSense-labeled water fixtures."},
+ {c:"Plumbing & Water", code:"WE 1A", ids:[38886728], t:"High-efficiency / dual-flush toilets (credit)",
+  cap:"Toilet label/spec showing gpf.",
+  std:"Credit (2 pts). High-efficiency and/or dual-flush toilets."},
+ {c:"Plumbing & Water", code:"ES 12", ids:[38886881], t:"High-efficiency water heater (credit)",
+  cap:"Installed water heater nameplate: model + efficiency.",
+  std:"Credit (2 pts). High-efficiency water heater."},
+ {c:"Plumbing & Water", code:"DU 4D", ids:[38886784], t:"Freeze protection for pipes (credit)",
+  cap:"Freeze protection on water pipes outside the thermal envelope.",
+  std:"Credit (1 pt). Freeze protection for pipes outside the envelope."},
+ {c:"Lighting & Energy", code:"ES 7", ids:[38886869], t:"Interior LED fixtures (credit)",
+  cap:"Interior fixtures showing certified LED.",
+  std:"Credit (1 pt). Interior fixtures are certified LED."},
+ {c:"Lighting & Energy", code:"ES 10", ids:[38886876], t:"Exterior LED fixtures (credit)",
+  cap:"Exterior fixtures showing certified LED.",
+  std:"Credit (1 pt). Exterior fixtures are certified LED."},
+ {c:"Lighting & Energy", code:"ES 8", ids:[38886871,38886872,38886873,38886874], t:"Interior lighting automatic controls (credit)",
+  cap:"Installed lighting controls: stairwell/corridor auto-reduce, restroom/mech occupancy sensors, multi-level control and vacancy sensors. Show the control devices.",
+  std:"Credit (up to 8 pts). Automatic lighting controls per ES 8A-8D."},
+ {c:"Lighting & Energy", code:"ES 11B", ids:[38886879], t:"Curfew / after-hours exterior lighting (credit)",
+  cap:"Exterior lighting control (curfew / after-hours shut-off).",
+  std:"Credit (1 pt). Exterior lighting curfew control."},
+ {c:"Lighting & Energy", code:"ES 4", ids:[38886863], t:"Temperature control: occupant access (credit)",
+  cap:"Thermostats accessible to occupants in each zone.",
+  std:"Credit (1 pt). Occupant access to temperature controls."},
+ {c:"Lighting & Energy", code:"ES 15A", ids:[38886887], t:"ENERGY STAR appliances (credit)",
+  cap:"Installed appliances showing the ENERGY STAR label.",
+  std:"Credit (1 pt). 100% ENERGY STAR appliances."},
+ {c:"Lighting & Energy", code:"ES 15D", ids:[38886890], t:"Commercial food-service equipment (credit)",
+  cap:"Food-service equipment ENERGY STAR labels (if applicable).",
+  std:"Credit (1-2 pts). ENERGY STAR commercial food-service equipment."},
+ {c:"Envelope", code:"BE 3", ids:[38886832], t:"ENERGY STAR roof (credit)",
+  cap:"Roof product label / spec showing ENERGY STAR, and a roof shot.",
+  std:"Credit (2 pts). ENERGY STAR qualified roof."},
+ {c:"Envelope", code:"BE 5B", ids:[38886836], t:"Glazing SHGC — NFRC labels (credit)",
+  cap:"Photograph each window NFRC sticker (U-factor / SHGC) before removal.",
+  std:"Credit (1 pt). Weighted-average SHGC below 0.25."},
+ {c:"Envelope", code:"BE 7A", ids:[38886842], t:"Daylighting 25% floor area (credit)",
+  cap:"Interior shots showing daylight into occupied spaces.",
+  std:"Credit (1 pt). Prescriptive daylighting for 25% of floor area."},
+ {c:"Site & Exterior", code:"SP 3", ids:[38886747], t:"Exterior lighting — light pollution (credit)",
+  cap:"Exterior fixtures showing full-cutoff / dark-sky shielding.",
+  std:"Credit (1 pt). Exterior lighting reduces light pollution."},
+ {c:"Site & Exterior", code:"SP 6.1", ids:[38886756], t:"Tree planting (credit)",
+  cap:"Newly planted trees on site.",
+  std:"Credit (1 pt). Standard tree planting."},
+ {c:"Site & Exterior", code:"WE R2", ids:[38886726], t:"Water-efficient landscaping",
+  cap:"Landscaping and any irrigation (or confirm no irrigation).",
+  std:"Requirement. Water-efficient landscaping and irrigation."},
+ {c:"Site & Exterior", code:"SP R2", ids:[38886742], t:"Stormwater management",
+  cap:"Installed stormwater features (bioretention, permeable areas, inlets).",
+  std:"Requirement. Stormwater management per site plan."}
+];
+
+/* Batches of 4 (merge a trailing 1-2 into the previous so each batch is 4-5). */
+const BATCHES = (function(){
+  const size=4, b=[];
+  for(let i=0;i<ITEMS.length;i+=size) b.push(ITEMS.map((_,k)=>k).slice(i,i+size));
+  if(b.length>1 && b[b.length-1].length<3){ const last=b.pop(); b[b.length-1]=b[b.length-1].concat(last); }
+  return b;
+})();
+function batchOf(i){ return BATCHES.findIndex(b=>b.includes(i)); }
+function batchRange(bi){ const b=BATCHES[bi]; return (b[0]+1)+"–"+(b[b.length-1]+1); }
+
+/* ============================ STATE + STORAGE ============================ */
+const LS_KEY="tle_final_v1";
+let state = loadState();
+let idx = 0;
+
+function blankState(){
+  const items={};
+  ITEMS.forEach(it=>{ items[it.code]={status:null, note:"", photos:[], sent:false}; });
+  return {inspector:"", siteNote:"", startedAt:new Date().toISOString(), items, batchSent:{}};
+}
+function loadState(){
+  try{ const s=JSON.parse(localStorage.getItem(LS_KEY)); if(s&&s.items){ // migrate missing items
+      ITEMS.forEach(it=>{ if(!s.items[it.code]) s.items[it.code]={status:null,note:"",photos:[],sent:false};
+        else if(s.items[it.code].sent===undefined) s.items[it.code].sent=false; });
+      if(!s.batchSent) s.batchSent={};
+      return s; } }catch(e){}
+  return blankState();
+}
+function saveState(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(state)); }catch(e){ toast("Storage full — send bundle soon"); } }
+async function newVisit(){
+  if(!confirm('Start a NEW visit?\n\nThis clears ALL entries and photos saved on this iPad. Make sure the current visit is fully sent first.')) return;
+  try{ localStorage.removeItem(LS_KEY); }catch(e){}
+  try{ if(_db){ _db.close(); _db=null; } }catch(e){}
+  try{ await new Promise(function(res){ const req=indexedDB.deleteDatabase('tle_final'); req.onsuccess=res; req.onerror=res; req.onblocked=res; setTimeout(res,1500); }); }catch(e){}
+  location.reload();
+}
+
+/* IndexedDB for photo blobs */
+let _db=null;
+function db(){ return new Promise((res,rej)=>{
+  if(_db) return res(_db);
+  const r=indexedDB.open("tle_final",1);
+  r.onupgradeneeded=e=>{ e.target.result.createObjectStore("photos",{keyPath:"id"}); };
+  r.onsuccess=e=>{ _db=e.target.result; res(_db); };
+  r.onerror=e=>rej(e);
+});}
+async function putPhotoRaw(id, blob){ const d=await db(); return new Promise((res,rej)=>{
+  let tx; try{ tx=d.transaction("photos","readwrite"); }catch(e){ rej(e); return; }
+  tx.oncomplete=res; tx.onerror=()=>rej(tx.error||new Error('tx')); tx.onabort=()=>rej(tx.error||new Error('abort'));
+  try{ tx.objectStore("photos").put({id,blob}); }catch(e){ rej(e); } }); }
+/* Locate a photo record by id (across all items). */
+function photoRec(code,id){ const st=state.items[code]; if(!st) return null; return st.photos.find(p=>p.id===id)||null; }
+/* Extract the capture timestamp embedded in a photo id ("code_<ms>_rand") for oldest-first ordering. */
+function photoTs(id){ const m=String(id).match(/_(\d{9,})_/); return m?+m[1]:0; }
+/* Photos that are already safely uploaded to Dropbox AND still hold a local blob — safe to evict under storage pressure, oldest first. */
+function uploadedEvictable(){
+  const list=[];
+  ITEMS.forEach(it=>{ const st=state.items[it.code];
+    st.photos.forEach(p=>{ if(p.uploaded && !p.evicted) list.push({id:p.id, p:p}); }); });
+  list.sort((a,b)=> photoTs(a.id)-photoTs(b.id));
+  return list;
+}
+/* Quota-safe put: on storage pressure, free already-uploaded blobs (they're safe in Dropbox) oldest-first and retry.
+   Returns true only if the blob is actually stored; NEVER drops an un-uploaded photo to make room. */
+async function putPhoto(id, blob){
+  try{ await putPhotoRaw(id, blob); return true; }
+  catch(e){
+    const evictable=uploadedEvictable();
+    for(const ev of evictable){
+      try{ await delPhoto(ev.id); ev.p.evicted=true; }catch(_){}
+      try{ await putPhotoRaw(id, blob); return true; }catch(_){ /* keep freeing */ }
+    }
+    return false;   // nothing safe left to evict → honest failure (caller surfaces it)
+  }
+}
+async function getPhoto(id){ const d=await db(); return new Promise((res,rej)=>{
+  const tx=d.transaction("photos","readonly"); const rq=tx.objectStore("photos").get(id);
+  rq.onsuccess=()=>res(rq.result?rq.result.blob:null); rq.onerror=rej; }); }
+async function delPhoto(id){ const d=await db(); return new Promise((res,rej)=>{
+  const tx=d.transaction("photos","readwrite"); tx.objectStore("photos").delete(id);
+  tx.oncomplete=res; tx.onerror=rej; }); }
+
+/* ============================ SCREEN NAV ============================ */
+const screens=["introScreen","itemScreen","listScreen","reviewScreen"];
+function show(id){ screens.forEach(s=>document.getElementById(s).classList.toggle("hidden", s!==id));
+  document.getElementById("itemNav").classList.toggle("hidden", id!=="itemScreen");
+  if(id==="introScreen") updateSavedInfo();
+  window.scrollTo(0,0); }
+
+function startWalk(){ state.inspector=document.getElementById("inspector").value.trim(); saveState();
+  idx=0; show("itemScreen"); render(); }
+function showList(){ buildList(); show("listScreen"); }
+function backFromList(){ show("itemScreen"); render(); }
+function go(d){ const n=idx+d; if(n<0){ show("introScreen"); return;} if(n>=ITEMS.length){ showReview(); return;} idx=n; render(); }
+function jump(i){ idx=i; show("itemScreen"); render(); }
+
+/* ============================ RENDER ITEM ============================ */
+async function render(){
+  const it=ITEMS[idx]; const st=state.items[it.code]; const bi=batchOf(idx);
+  document.getElementById("counter").textContent=(idx+1)+" / "+ITEMS.length;
+  updateProgress();
+  const links=it.ids.map(id=>`<a class="tw" href="${TW}${id}" target="_blank">#${id}</a>`).join(" · ");
+  const card=document.getElementById("itemCard");
+  card.innerHTML=`
+    <div class="sect">${it.c}</div>
+    <div class="code">${it.code} &nbsp;·&nbsp; ${links}</div>
+    <h1 class="itemtitle">${it.t}</h1>
+    <div class="label">📷 What to capture</div>
+    <div class="capture-txt">${it.cap}</div>
+    <div class="label">Standard</div>
+    <div class="standard ${it.adv?'advisory':''}">${it.std}</div>
+
+    <div class="label">Photos <span id="pc" style="color:var(--green)"></span></div>
+    <div class="photos" id="photos"></div>
+    <label class="addphoto" for="fileInput">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+      Take / add photo
+    </label>
+    <input type="file" id="fileInput" accept="image/*" capture="environment" multiple onchange="onFiles(event)">
+
+    <div class="label">Note (optional)</div>
+    <textarea id="noteBox" placeholder="Observation, location, deficiency detail…" oninput="onNote(event)">${st.note||""}</textarea>
+
+    <div class="label">Set status</div>
+    <div class="statusgrid">
+      ${sbtn(it,'field','Field reviewed / compliant','Verified compliant on site')}
+      ${sbtn(it,'attn','Reviewed / needs attention','Deficiency or follow-up')}
+      ${sbtn(it,'later','Not installed yet','Leave in place — revisit at final')}
+      ${sbtn(it,'client','Client must provide','Can\'t verify here → client list')}
+      ${sbtn(it,'na','N/A · not applicable','Nothing to capture here',true)}
+    </div>
+    <div class="banner">QA is set by the PM after review — not from the field.</div>
+
+    <div class="batchbox">
+      <div class="batchhead">📦 Batch ${bi+1} of ${BATCHES.length} · item ${BATCHES[bi].indexOf(idx)+1} of ${BATCHES[bi].length} in this batch</div>
+      <div class="batchsub" id="batchsub"></div>
+      <button class="btn-batch" onclick="sendBatch(${bi})">📤 Send this batch → Dropbox</button>
+      <div class="banner" style="margin-top:8px">Tap Send anytime — even with no signal. It's saved on this iPad and <b>uploads straight to Dropbox</b> (one tap, no share sheet). Offline? It uploads automatically the moment you're back online.</div>
+    </div>
+  `;
+  updateBatchSub(bi);
+  await drawPhotos(it.code);
+}
+function batchStats(bi){
+  const b=BATCHES[bi]; let set=0,photos=0,sent=0;
+  b.forEach(i=>{ const s=state.items[ITEMS[i].code]; if(s.status)set++; photos+=s.photos.length; if(s.sent)sent++; });
+  return {n:b.length,set,photos,sent};
+}
+function updateBatchSub(bi){
+  const el=document.getElementById("batchsub"); if(!el) return;
+  const s=batchStats(bi); const done=state.batchSent[bi];
+  el.innerHTML = `${s.set}/${s.n} set · ${s.photos} photo${s.photos!==1?'s':''}` +
+    (done? ` · <b style="color:var(--green)">✔ sent ${new Date(done).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}</b>`:"");
+}
+function sbtn(it,key,label,sub,full){
+  const sel = state.items[it.code].status===key ? "sel":"";
+  return `<button class="sbtn ${key} ${sel} ${full?'full':''}" onclick="setStatus('${it.code}','${key}')">
+    <span><span class="dot"></span>${label}</span><small>${sub}</small></button>`;
+}
+function setStatus(code,key){
+  const st=state.items[code]; st.status = (st.status===key?null:key); touchItem(code); saveState();
+  render(); updateNetBar(); toast(st.status?("Set → "+COLUMNS[key].name):"Cleared");
+}
+function onNote(e){ const code=ITEMS[idx].code; state.items[code].note=e.target.value; touchItem(code); saveState(); updateNetBar(); }
+
+let _photoUrls=[];
+async function drawPhotos(code){
+  const wrap=document.getElementById("photos"); if(!wrap) return;
+  _photoUrls.forEach(u=>{ try{URL.revokeObjectURL(u);}catch(e){} }); _photoUrls=[];
+  const st=state.items[code]; wrap.innerHTML="";
+  document.getElementById("pc").textContent = st.photos.length?("· "+st.photos.length):"";
+  for(const p of st.photos){
+    const blob=await getPhoto(p.id);
+    const d=document.createElement("div"); d.className="thumb";
+    if(blob){
+      const url=URL.createObjectURL(blob); _photoUrls.push(url);
+      d.innerHTML=`<img src="${url}"><button class="del" onclick="removePhoto('${code}','${p.id}')">✕</button>`;
+    } else if(p.uploaded){
+      // blob was freed after a confirmed Dropbox upload to make room — the photo is safe
+      d.innerHTML=`<div class="uptile">✓<span>Uploaded</span></div>`;
+    } else {
+      // blob missing and NOT uploaded → a genuine loss; show it loudly instead of hiding it
+      d.innerHTML=`<div class="uptile lost">⚠<span>Missing</span></div><button class="del" onclick="removePhoto('${code}','${p.id}')">✕</button>`;
+    }
+    wrap.appendChild(d);
+  }
+}
+async function onFiles(e){
+  const files=[...e.target.files]; e.target.value="";
+  const st=state.items[ITEMS[idx].code];
+  let ok=0, fail=0;
+  for(const f of files){
+    try{
+      const blob=await downscale(f);
+      const id=ITEMS[idx].code.replace(/[^a-z0-9]/gi,'')+"_"+Date.now()+"_"+Math.random().toString(36).slice(2,6);
+      const stored=await putPhoto(id, blob);
+      if(stored){ st.photos.push({id, size:blob.size, uploaded:false}); ok++; }
+      else { fail++; }
+    }catch(err){ fail++; }
+  }
+  touchItem(ITEMS[idx].code); saveState(); await drawPhotos(ITEMS[idx].code); updateProgress(); updateNetBar();
+  if(fail>0){ toast("⚠ "+ok+" saved, "+fail+" FAILED (storage full). Tap Send on a batch to free space, then re-take."); }
+  else { toast(ok+" photo"+(ok!==1?"s":"")+" added"); }
+}
+async function removePhoto(code,id){
+  const st=state.items[code]; st.photos=st.photos.filter(p=>p.id!==id);
+  await delPhoto(id); touchItem(code); saveState(); await drawPhotos(code); updateProgress(); updateNetBar();
+}
+function downscale(file){ return new Promise((res,rej)=>{
+  const img=new Image(); const u=URL.createObjectURL(file);
+  img.onload=()=>{ URL.revokeObjectURL(u);
+    const max=1920; let w=img.naturalWidth,h=img.naturalHeight;
+    if(w>max||h>max){ const s=Math.min(max/w,max/h); w=Math.round(w*s); h=Math.round(h*s); }
+    const c=document.createElement("canvas"); c.width=w; c.height=h;
+    c.getContext("2d").drawImage(img,0,0,w,h);
+    c.toBlob(b=> b?res(b):rej("noblob"), "image/jpeg", 0.82);
+  };
+  img.onerror=()=>{URL.revokeObjectURL(u);rej("imgerr");}; img.src=u;
+});}
+
+/* ============================ PROGRESS + LIST ============================ */
+function isDone(code){ return !!state.items[code].status; }
+function updateProgress(){
+  const done=ITEMS.filter(it=>isDone(it.code)).length;
+  document.getElementById("progbar").style.width=(done/ITEMS.length*100)+"%";
+}
+function chipFor(status){ const m={qa:"QA",field:"Field",attn:"Attn",later:"Final",client:"Client",na:"N/A"};
+  return status? `<span class="chip ${status}">${m[status]}</span>` : `<span class="chip none">—</span>`; }
+function buildList(){
+  const body=document.getElementById("listBody"); let html=""; let curSec="";
+  ITEMS.forEach((it,i)=>{
+    if(it.c!==curSec){ curSec=it.c; html+=`<div class="sect" style="margin-top:14px">${it.c}</div>`; }
+    const st=state.items[it.code];
+    html+=`<div class="listrow" onclick="jump(${i})">
+      <div class="n">${i+1}</div>
+      <div class="meta"><b>${it.code} · ${it.t}</b><span>${st.photos.length} photo${st.photos.length!==1?'s':''}${st.note?' · note':''}</span></div>
+      ${chipFor(st.status)}
+    </div>`;
+  });
+  body.innerHTML=html;
+}
+
+/* ============================ REVIEW ============================ */
+function showReview(){ document.getElementById("siteNote").value=state.siteNote||"";
+  buildReview(); renderVerify(); show("reviewScreen"); }
+/* Verify-on-send: reconcile every photo record against what's actually stored/uploaded, so a lost
+   photo is caught on-site (in Review, before leaving) rather than in the office. */
+async function verifyStored(){
+  let expected=0, present=0, uploaded=0; const lost=[];
+  for(const it of ITEMS){ const st=state.items[it.code];
+    for(const p of st.photos){ expected++;
+      const blob=await getPhoto(p.id);
+      if(blob) present++; else if(p.uploaded) uploaded++; else lost.push(it.code);
+    } }
+  return {expected, present, uploaded, lost};
+}
+async function renderVerify(){
+  const el=document.getElementById('verifyWrap'); if(!el) return;
+  const v=await verifyStored();
+  if(v.lost.length){
+    const codes=[...new Set(v.lost)].join(", ");
+    el.innerHTML=`<div class="standard advisory" style="margin-bottom:12px">⚠ <b>${v.lost.length} photo${v.lost.length>1?'s':''} could not be recovered</b> on this iPad (storage filled during capture): <b>${codes}</b>. Re-take ${v.lost.length>1?'them':'it'} before you leave the site.</div>`;
+  } else if(v.expected){
+    el.innerHTML=`<div class="standard" style="margin-bottom:12px">✅ All <b>${v.expected}</b> photo${v.expected!==1?'s':''} accounted for${v.uploaded?` (${v.uploaded} already uploaded, ${v.present} on iPad ready to send)`:''}.</div>`;
+  } else { el.innerHTML=""; }
+}
+function hideReview(){ show("itemScreen"); render(); }
+document.getElementById("siteNote")?.addEventListener("input",e=>{state.siteNote=e.target.value;saveState();});
+
+function buildReview(){
+  const counts={qa:0,field:0,attn:0,client:0,na:0,none:0}; let photos=0;
+  ITEMS.forEach(it=>{ const st=state.items[it.code]; photos+=st.photos.length;
+    counts[st.status||"none"]++; });
+  document.getElementById("reviewSummary").innerHTML=`
+    <div class="stat"><b>${ITEMS.length-counts.none}/${ITEMS.length}</b><span>items set</span></div>
+    <div class="stat"><b>${photos}</b><span>photos</span></div>
+    <div class="stat"><b>${counts.field}</b><span>field compliant</span></div>
+    <div class="stat"><b>${counts.attn}</b><span>needs attention</span></div>`;
+  // incomplete warning
+  const inc=ITEMS.filter(it=>!state.items[it.code].status);
+  const iw=document.getElementById("incompleteWrap");
+  iw.innerHTML = inc.length? `<div class="standard advisory" style="margin-bottom:12px">
+    ⚠ ${inc.length} item${inc.length>1?'s':''} not set yet: ${inc.map(x=>x.code).join(", ")}.
+    You can still send — they'll show as pending.</div>`:"";
+  // batch list
+  const bl=document.getElementById("batchList");
+  if(bl){ bl.innerHTML = BATCHES.map((b,bi)=>{
+    const s=batchStats(bi); const sent=state.batchSent[bi];
+    const codes=b.map(i=>ITEMS[i].code).join(", ");
+    return `<div class="batchrow">
+      <div class="bmeta"><b>Batch ${bi+1}</b> · items ${batchRange(bi)}
+        <span>${codes}</span>
+        <span>${s.set}/${s.n} set · ${s.photos} photo${s.photos!==1?'s':''}${sent?' · ✔ sent':''}</span></div>
+      <button class="btn-send-sm ${sent?'sent':''}" onclick="sendBatch(${bi})">${sent?'Re-send':'Send'}</button>
+    </div>`;
+  }).join(""); }
+  // client list
+  const cl=ITEMS.filter(it=>state.items[it.code].status==="client");
+  const clBox=document.getElementById("clientList");
+  clBox.innerHTML = cl.length? cl.map(it=>`<div class="clientitem"><b>${it.code} · ${it.t}</b>${
+    state.items[it.code].note?"<br>"+esc(state.items[it.code].note):""}</div>`).join("")
+    : `<div class="banner">No client-provided items flagged yet.</div>`;
+}
+
+/* ============================ EXPORT (loose files → Dropbox) ============================ */
+function esc(s){ return (s||"").replace(/[<>&]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[c])); }
+function sanitize(s){ return s.replace(/[^a-z0-9]+/gi,'-').replace(/^-|-$/g,''); }
+
+// Build LOOSE files (no zip): manifest.json + REPORT.md + one file per photo.
+// Every file is prefixed with a unique bundle id so multiple batches coexist in the intake folder.
+async function buildBundleFiles(subset, meta){
+  subset = subset || ITEMS;
+  meta = meta || {partial:false, label:"full"};
+  const stamp=new Date();
+  const dateStr=stamp.toISOString().slice(0,10);
+  const bundleId = stamp.getTime().toString(36)+"-"+Math.random().toString(36).slice(2,8);
+  const prefix = `TLE_${dateStr}_${sanitize(meta.label)}_${bundleId}__`;
+  const SLABEL={field:'COMPLIANT', attn:'NEEDS-ATTN', later:'NOT-INSTALLED', client:'CLIENT-PROVIDE', na:'N-A'};
+  const shareFiles=[]; const manifestItems=[]; const clientActions=[]; let missing=0;
+  for(const it of subset){
+    const gidx = ITEMS.indexOf(it)+1;               // global item number
+    const st=state.items[it.code];
+    // human-readable photo name: order_code_STATUS_title__date_uniqueid  → sorts in checklist order, self-documenting for QA
+    const stLabel = SLABEL[st.status] || 'UNSET';
+    const titleSlug = sanitize(it.t).slice(0,40);
+    const photoNames=[]; let k=0, carried=0;
+    for(const p of st.photos){
+      const blob=await getPhoto(p.id);
+      if(!blob){ if(p.uploaded) carried++; else missing++; continue; }  // carried = already in Dropbox (blob freed); missing = genuine loss
+      k++;
+      const fname=`${String(gidx).padStart(2,'0')}_${sanitize(it.code)}_${stLabel}_${titleSlug}__${dateStr}_${bundleId}-${k}.jpg`;
+      const file=new File([blob], fname, {type:"image/jpeg"});
+      file._ref={code:it.code, id:p.id};   // link file back to its photo record so upload can be confirmed
+      shareFiles.push(file);
+      photoNames.push(fname);
+    }
+    const col = st.status? COLUMNS[st.status] : null;
+    const rec={
+      order:gidx, code:it.code, title:it.t, section:it.c,
+      taskIds:it.ids, taskLinks:it.ids.map(id=>TW+id),
+      status:st.status||"unset",
+      targetColumn: col?col.name:null, targetColumnId: col?col.id:null,
+      note:st.note||"", photos:photoNames, photosCarriedFromEarlierSend:carried, advisory: !!it.adv
+    };
+    manifestItems.push(rec);
+    if(st.status==="client") clientActions.push(rec);
+  }
+  const manifest={
+    bundleId, project:PROJECT, inspector:state.inspector||"", visitStage:PROJECT.stage,
+    generatedAt:stamp.toISOString(), siteNote:state.siteNote||"", photosMissing:missing,
+    filePrefix:prefix,
+    bundle:{partial:meta.partial, label:meta.label, itemCodes:subset.map(x=>x.code), totalItems:ITEMS.length},
+    dedupeRule:"If a later bundle repeats an item already posted, REPLACE that item's comment/status and ADD its new photos. Later generatedAt wins. Photo files are uniquely named. IMPORTANT: never delete photos already uploaded for an item in an earlier bundle — if photosCarriedFromEarlierSend > 0, that item has additional photos in this intake folder from a prior batch that are NOT re-listed here; keep them.",
+    columnMap:COLUMNS, items:manifestItems, clientActions
+  };
+  // manifest first, then a human-readable report, then photos
+  shareFiles.unshift(new File([JSON.stringify(manifest,null,2)], `${prefix}manifest.json`, {type:"application/json"}));
+  shareFiles.splice(1,0, new File([buildReport(manifest)], `${prefix}REPORT.md`, {type:"text/markdown"}));
+  return {shareFiles, missing, count:shareFiles.length};
+}
+function buildReport(m){
+  let s=`# TLE Alexandria — Final Inspection Field Report\n\n**Project:** ${m.project.name} — ${m.project.address}\n`;
+  s+=`**Stage:** ${m.visitStage}\n**Inspector:** ${m.inspector||"—"}\n**Captured:** ${m.generatedAt}\n**Bundle ID:** ${m.bundleId}\n`;
+  s+=`**Bundle:** ${m.bundle.partial?("PARTIAL — "+m.bundle.label+" ("+m.bundle.itemCodes.length+" of "+m.bundle.totalItems+" items: "+m.bundle.itemCodes.join(", ")+")"):"FULL — all items"}\n\n`;
+  if(m.bundle.partial) s+=`> Partial batch. Merge with the other batches from this visit (dedupe by task ID) before finalizing.\n\n`;
+  if(m.siteNote) s+=`**Site note:** ${m.siteNote}\n\n`;
+  s+=`---\n\nEOS: for each item, post a Teamwork comment (note + status) with the listed photos attached, then move the task(s) to the target column. Client-flagged items are NOT moved — add them to the client action list. If a later bundle repeats an item, the later one supersedes (photos are uniquely named by photo id).\n\n`;
+  let sec="";
+  m.items.forEach(it=>{
+    if(it.section!==sec){ sec=it.section; s+=`\n## ${sec}\n`; }
+    s+=`\n### ${it.order}. ${it.code} — ${it.title}\n`;
+    s+=`- Tasks: ${it.taskIds.map(id=>"#"+id).join(", ")}\n`;
+    s+=`- Status: **${it.status}**${it.targetColumnId?(" → move to **"+it.targetColumn+"**"):(it.status==="client"?" → FLAG ONLY (client action list; do not move)":(it.status==="later"?" → LEAVE IN PLACE (not installed yet; revisit at final)":""))}\n`;
+    s+=`- Photos: ${it.photos.length? it.photos.join(", "):"none"}\n`;
+    if(it.note) s+=`- Note: ${it.note}\n`;
+  });
+  return s;
+}
+let _uploading=false;
+async function shipBundle(subset, meta, onSent){
+  if(_uploading) return false;   // guard: prevent double-send (online event + manual tap overlap)
+  _uploading=true;
+  toast("Preparing…");
+  try{
+    const {shareFiles, missing}=await buildBundleFiles(subset, meta);
+    // PRIMARY: one-tap direct upload to Dropbox (no share sheet)
+    if(dbxConnected()){
+      if(!navigator.onLine){ toast("Offline — saved on iPad; uploads when back online"); return false; }
+      try{
+        toast("Uploading "+shareFiles.length+" files…");
+        for(const f of shareFiles){
+          await dbxUpload(f);
+          // confirmed in Dropbox → mark + persist immediately, so a mid-batch drop on flaky signal
+          // still records what already uploaded (keeps those blobs evictable; avoids needless re-sends)
+          if(f._ref){ const rp=photoRec(f._ref.code, f._ref.id); if(rp){ rp.uploaded=true; saveState(); } }
+        }
+        saveState();
+        toast(missing? ("Uploaded ✔ — ⚠ "+missing+" photo"+(missing>1?"s":"")+" LOST on iPad, re-take before leaving") : ("Uploaded to Dropbox ✔"));
+        if(onSent)onSent(); return true;
+      }catch(e){ toast("Upload didn't finish — will retry when online"); return false; }
+    }
+    // FALLBACK (not connected): Web Share sheet, so it still works
+    if(navigator.canShare && navigator.canShare({files:shareFiles})){
+      try{ await navigator.share({files:shareFiles, title:"Lee Hwy field capture", text:"Save to Dropbox → EOS Field Intake"});
+        toast("Handed off ✔ — "+shareFiles.length+" files"); if(onSent)onSent(); return true; }
+      catch(e){ if(e && e.name==="AbortError") return false;
+        toast("Not sent. Tip: Connect Dropbox for one-tap uploads."); return false; }
+    }
+    shareFiles.forEach(f=>saveBlob(f, f.name)); toast("Downloaded "+shareFiles.length+" files"); if(onSent)onSent(); return true;
+  }catch(e){ toast("Send error — try again"); return false; }
+  finally{ _uploading=false; }
+}
+async function sendBatch(bi){
+  const subset=BATCHES[bi].map(i=>ITEMS[i]);
+  const ok=await shipBundle(subset, {partial:true, label:"batch"+(bi+1)}, ()=>{
+    state.batchSent[bi]=new Date().toISOString();
+    BATCHES[bi].forEach(i=>{ state.items[ITEMS[i].code].sent=true; });
+    saveState();
+  });
+  if(ok){ updateBatchSub(bi); updateNetBar();
+    if(!document.getElementById('reviewScreen').classList.contains('hidden')){ buildReview(); renderVerify(); } }
+}
+async function exportBundle(){   // "Send all remaining" — only items not yet sent (never re-sends already-posted items)
+  const subset=pendingItems();
+  if(!subset.length){ toast("Nothing left to send"); return; }
+  const ok=await shipBundle(subset, {partial:true, label:"all-unsent"}, ()=>{
+    subset.forEach(it=>{ state.items[it.code].sent=true; });
+    markBatchesSent(); saveState(); buildReview(); renderVerify(); updateNetBar();
+  });
+  if(!ok){ updateNetBar(); buildReview(); renderVerify(); }
+}
+async function downloadBundle(){
+  toast("Packaging…");
+  try{ const {shareFiles}=await buildBundleFiles(ITEMS,{partial:false,label:"full"}); shareFiles.forEach(f=>saveBlob(f,f.name)); toast("Downloaded "+shareFiles.length+" files"); }
+  catch(e){ toast("Export error"); }
+}
+function saveBlob(blob,name){ const url=URL.createObjectURL(blob);
+  const a=document.createElement("a"); a.href=url; a.download=name; document.body.appendChild(a); a.click();
+  setTimeout(()=>{a.remove();URL.revokeObjectURL(url);},4000); }
+
+/* ============================ MISC ============================ */
+let _tt;
+function toast(msg){ const t=document.getElementById("toast"); t.textContent=msg; t.classList.add("show");
+  clearTimeout(_tt); _tt=setTimeout(()=>t.classList.remove("show"),1800); }
+
+/* ---- offline backup + send-when-connected ---- */
+function pendingItems(){ return ITEMS.filter(it=>{ const s=state.items[it.code]; return (s.status||s.photos.length>0) && !s.sent; }); }
+// if an already-sent item is edited, re-flag it so the correction goes out again
+function touchItem(code){ const st=state.items[code]; if(st.sent){ st.sent=false;
+  const bi=BATCHES.findIndex(b=>b.some(i=>ITEMS[i].code===code)); if(bi>=0) delete state.batchSent[bi]; } }
+function markBatchesSent(){
+  BATCHES.forEach((b,bi)=>{
+    const content=b.filter(i=>{const s=state.items[ITEMS[i].code]; return s.status||s.photos.length>0;});
+    if(content.length && content.every(i=>state.items[ITEMS[i].code].sent) && !state.batchSent[bi])
+      state.batchSent[bi]=new Date().toISOString();
+  });
+}
+function updateNetBar(){
+  updateSavedInfo(); updateDbxBar();
+  const bar=document.getElementById('netbar'); if(!bar) return;
+  const pend=pendingItems().length;
+  if(!navigator.onLine){
+    bar.className='netbar off'; bar.style.display='block';
+    bar.innerHTML='🔌 Offline — everything is saved on this iPad. Tap Send anytime'+(pend?(' · '+pend+' item'+(pend>1?'s':'')+' still to send'):'')+'.';
+  } else if(pend>0){
+    bar.className='netbar on'; bar.style.display='block';
+    bar.innerHTML='✅ Online · <b>'+pend+'</b> item'+(pend>1?'s':'')+' not yet sent. <button onclick="uploadPending()">Send now</button>';
+  } else { bar.style.display='none'; }
+}
+async function uploadPending(){
+  const subset=pendingItems(); if(!subset.length){ toast('Nothing pending'); return; }
+  await shipBundle(subset, {partial:true, label:'pending'}, ()=>{
+    subset.forEach(it=>{ state.items[it.code].sent=true; });
+    markBatchesSent(); saveState(); updateNetBar();
+    if(!document.getElementById('reviewScreen').classList.contains('hidden')){ buildReview(); renderVerify(); }
+  });
+}
+function updateSavedInfo(){
+  const el=document.getElementById('savedBar'); if(!el) return;
+  let set=0, ph=0, sent=0; ITEMS.forEach(it=>{ const s=state.items[it.code]; if(s.status)set++; ph+=s.photos.length; if(s.sent)sent++; });
+  el.innerHTML = '💾 Saved on this iPad · <b>'+set+'</b>/'+ITEMS.length+' set · <b>'+ph+'</b> photo'+(ph!==1?'s':'')
+    + (sent?(' · <b>'+sent+'</b> sent'):'');
+}
+window.addEventListener('online', async ()=>{ updateNetBar();
+  if(dbxConnected() && pendingItems().length){ toast('Back online — uploading pending…'); try{ await uploadPending(); }catch(e){} } });
+window.addEventListener('offline', updateNetBar);
+
+/* ---- Dropbox direct upload (write-only, App folder) ----
+   CENTRAL INTAKE: every field device uploads to ONE shared account's Apps/EOS Field Intake
+   folder, which EOS reads. The built-in refresh token below is WRITE-ONLY and scoped to that
+   single folder only (it cannot read files or touch anything else in Dropbox). No per-user
+   Connect step — the app is always "connected" via this token. */
+const DBX_APP_KEY="5zazkrif192i4ct";
+const DBX_REFRESH="Ewg7-tZHcJ0AAAAAAAAAAUJm94jDEcAhM6SYfp4ZC8NubJpabMEO3FG7Oev5x4YH";
+/* Migration: earlier builds stored a PER-USER Dropbox token in localStorage. This build uploads
+   via the built-in central token instead. Purge any stale per-user creds once, so a device that
+   previously connected its own account (e.g. Brendon's) doesn't keep uploading to that account. */
+try{ if(localStorage.getItem('dbx_mode')!=='central'){ ['dbx_refresh','dbx_access','dbx_exp','dbx_pv','dbx_pc','dbx_verifier'].forEach(function(k){ localStorage.removeItem(k); }); localStorage.setItem('dbx_mode','central'); } }catch(_){ }
+function b64url(buf){ let s=btoa(String.fromCharCode.apply(null,new Uint8Array(buf))); return s.replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); }
+function dbxVerifier(){ const a=new Uint8Array(64); crypto.getRandomValues(a); return b64url(a.buffer); }
+async function dbxChallenge(v){ const d=await crypto.subtle.digest('SHA-256', new TextEncoder().encode(v)); return b64url(d); }
+function dbxConnected(){ return true; }  /* always connected via built-in central token */
+let _dbxAuthUrl='';
+async function dbxEnsureAuthUrl(){
+  if(_dbxAuthUrl) return _dbxAuthUrl;
+  // persist verifier+challenge so the same pair survives leaving/returning to the app (no popup, no window.open)
+  var v=localStorage.getItem('dbx_pv'), c=localStorage.getItem('dbx_pc');
+  if(!v||!c){ v=dbxVerifier(); c=await dbxChallenge(v); localStorage.setItem('dbx_pv',v); localStorage.setItem('dbx_pc',c); }
+  localStorage.setItem('dbx_verifier', v);
+  _dbxAuthUrl='https://www.dropbox.com/oauth2/authorize?client_id='+DBX_APP_KEY+'&response_type=code&code_challenge='+c+'&code_challenge_method=S256&token_access_type=offline';
+  return _dbxAuthUrl;
+}
+async function dbxSubmitCode(){
+  const el=document.getElementById('dbxCodeInput'); const code=((el&&el.value)||'').trim(); if(!code){ toast('Paste the code first'); return; }
+  const v=localStorage.getItem('dbx_verifier'); if(!v){ toast('Tap Connect again'); return; }
+  try{
+    const body=new URLSearchParams({grant_type:'authorization_code', code:code, code_verifier:v, client_id:DBX_APP_KEY});
+    const r=await fetch('https://api.dropboxapi.com/oauth2/token',{method:'POST', body:body});
+    const j=await r.json();
+    if(j.refresh_token){
+      localStorage.setItem('dbx_refresh', j.refresh_token);
+      if(j.access_token){ localStorage.setItem('dbx_access', j.access_token); localStorage.setItem('dbx_exp', String(Date.now()+((j.expires_in||14400)*1000))); }
+      localStorage.removeItem('dbx_pv'); localStorage.removeItem('dbx_pc'); localStorage.removeItem('dbx_verifier'); _dbxAuthUrl='';
+      if(el) el.value=''; const w=document.getElementById('dbxCodeWrap'); if(w) w.style.display='none';
+      toast('Dropbox connected ✔'); updateDbxBar(); updateNetBar();
+    } else { toast('Code rejected — tap Connect again'); }
+  }catch(e){ toast('Connect failed — check signal'); }
+}
+async function dbxToken(){
+  const acc=localStorage.getItem('dbx_access'); const exp=+(localStorage.getItem('dbx_exp')||0);
+  if(acc && Date.now()<exp-60000) return acc;
+  const rt=DBX_REFRESH;  /* built-in central intake token */
+  let j={};
+  try{
+    const r=await fetch('https://api.dropboxapi.com/oauth2/token',{method:'POST', body:new URLSearchParams({grant_type:'refresh_token', refresh_token:rt, client_id:DBX_APP_KEY})});
+    j=await r.json();
+  }catch(e){ return null; }   // network blip — keep creds, retry later
+  if(j.access_token){ localStorage.setItem('dbx_access', j.access_token); localStorage.setItem('dbx_exp', String(Date.now()+((j.expires_in||14400)*1000))); return j.access_token; }
+  // mint failed with built-in token → drop cached access only, retry on next send
+  localStorage.removeItem('dbx_access'); localStorage.removeItem('dbx_exp');
+  return null;
+}
+function dbxArg(o){ return JSON.stringify(o).replace(/[-￿]/g, c=>'\\u'+c.charCodeAt(0).toString(16).padStart(4,'0')); }
+async function dbxUpload(file){
+  const tok=await dbxToken(); if(!tok) throw new Error('not connected');
+  const arg={path:'/'+file.name, mode:'add', autorename:true, mute:true};
+  const r=await fetch('https://content.dropboxapi.com/2/files/upload',{
+    method:'POST',
+    headers:{'Authorization':'Bearer '+tok,'Dropbox-API-Arg':dbxArg(arg),'Content-Type':'application/octet-stream'},
+    body: await file.arrayBuffer()
+  });
+  if(!r.ok) throw new Error('HTTP '+r.status);
+  return r.json();
+}
+async function updateDbxBar(){
+  const el=document.getElementById('dbxbar'); if(!el) return;
+  const cw=document.getElementById('dbxCodeWrap');
+  if(dbxConnected()){ el.style.display='none'; if(cw) cw.style.display='none'; return; }
+  const url=await dbxEnsureAuthUrl();
+  el.className='netbar off'; el.style.display='block';
+  el.innerHTML='🔗 Connect Dropbox once so Send uploads. <a href="'+url+'" target="_blank" rel="noopener" style="margin-left:8px;background:var(--green);color:#fff;text-decoration:none;padding:7px 14px;border-radius:8px;font-weight:700;display:inline-block">Connect Dropbox</a>';
+  if(cw) cw.style.display='block';   // paste box stays visible so the code can be entered on return
+}
+
+// passcode gate
+const PASSCODE="TLE26";
+function tryUnlock(){
+  const el=document.getElementById('lockInput'); const v=(el.value||'').trim();
+  if(v.toUpperCase()===PASSCODE){ try{localStorage.setItem('tle_unlocked','1');}catch(e){}
+    document.getElementById('lockScreen').classList.add('hidden'); el.value=''; }
+  else { document.getElementById('lockMsg').textContent='Incorrect passcode'; }
+}
+try{ if(localStorage.getItem('tle_unlocked')==='1') document.getElementById('lockScreen').classList.add('hidden'); }catch(e){}
+
+// restore inspector + counts on load
+document.getElementById("inspector").value=state.inspector||"";
+document.getElementById("introCount").textContent=ITEMS.length;
+updateProgress(); updateNetBar(); updateSavedInfo(); updateDbxBar();
+</script>
+</body>
+</html>
