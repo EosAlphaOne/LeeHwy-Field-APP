@@ -1,11 +1,11 @@
 /* Network-first service worker shared by BOTH apps at this origin (index.html = Lee Hwy Pre-Rock,
    tle-alexandria.html = TLE Final). Always serve the freshest app when online, fall back to cache offline.
-   v2 (2026-09-02): pre-cache both app pages at install (falling back to any older cached copy, and failing
+   v3 (2026-09-02): + field.html (EOS shell). v2: pre-cache both app pages at install (falling back to any older cached copy, and failing
    install — which keeps the previous worker — if a page cannot be obtained at all); page-aware offline
    fallback (never serve one app under the other's URL); never cache non-OK or redirected responses;
    purge old caches only once the new cache is complete. */
-const CACHE='leehwy-app-v2';
-const PRECACHE=['./index.html','./tle-alexandria.html'];
+const CACHE='leehwy-app-v3';
+const PRECACHE=['./index.html','./tle-alexandria.html','./field.html'];
 self.addEventListener('install', function(e){
   e.waitUntil(
     caches.open(CACHE).then(function(c){
@@ -15,7 +15,7 @@ self.addEventListener('install', function(e){
           throw new Error('precache '+u);
         }).catch(function(){
           // fall back to whatever any older cache already holds for this page
-          return caches.match(u,{ignoreVary:true}).then(function(old){
+          return caches.match(u,{ignoreSearch:true,ignoreVary:true}).then(function(old){
             if(old) return c.put(u,old);
             throw new Error('no copy available for '+u);   // install fails -> previous worker stays active
           });
@@ -38,7 +38,9 @@ self.addEventListener('activate', function(e){
 });
 function fallbackPage(url){
   // Serve the app that was actually requested; never swap one app for the other.
-  if(url.pathname.indexOf('tle-alexandria')!==-1) return './tle-alexandria.html';
+  var leaf=url.pathname.split('/').pop();
+  if(leaf==='tle-alexandria.html') return './tle-alexandria.html';
+  if(leaf==='field.html') return './field.html';
   return './index.html';
 }
 function offlineResponse(){

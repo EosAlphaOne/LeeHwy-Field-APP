@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="en" data-look="a">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#79AE3D">
+<title>EOS Field Capture</title>
+<link rel="manifest" href="field.webmanifest">
+<link rel="apple-touch-icon" href="field-icon-192.png">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="EOS Field">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&family=Saira:wght@500;600;700&family=Work+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" media="print" onload="this.media='all'">
+<script>if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){});});}</script>
+<style>
+/* ============================================================
+   EOS Field Capture — shell styles.
+   Structure is shared; each LOOK sets the tokens below.
+   A = published Ecovative Design System · B = F1 direction · C = hybrid
+   ============================================================ */
+:root{
+  /* palette (Ecovative tokens) */
+  --green-50:#F2F7EA; --green-100:#E2EECF; --green-200:#C9DFA6; --green-300:#ABCE78; --green-500:#79AE3D; --green-600:#648F32; --green-700:#4F7228; --green-800:#3D571F;
+  --n-25:#FAFBFA; --n-50:#F4F6F4; --n-100:#E9ECE9; --n-200:#D7DBD7; --n-300:#B7BDB7; --n-400:#8B928B; --n-500:#6A716A; --n-700:#393E39; --ink:#141414;
+  --pass-fg:#3D571F; --pass:#5E8A2E; --pass-bg:#E6F1D6; --pass-border:#BFDC97;
+  --fail-fg:#8E2424; --fail:#D23B3B; --fail-bg:#FBE7E7; --fail-border:#F2BFBF;
+  --caution-fg:#8A5B07; --caution:#E0A526; --caution-bg:#FBF2DA; --caution-border:#F1DCA0;
+  --info-fg:#1F507F; --info:#2C6FB0; --info-bg:#E4EEF7; --info-border:#BCD5EC;
+  --neutral-fg:#6A716A; --neutral:#B7BDB7; --neutral-bg:#F4F6F4; --neutral-border:#D7DBD7;
+}
+/* ---------- LOOK A: published design system ---------- */
+html[data-look="a"]{
+  --page:#FAFBFA; --card:#FFFFFF; --sunken:#F4F6F4; --text:#141414; --body:#393E39; --muted:#6A716A; --faint:#8B928B;
+  --line:#E9ECE9; --line-2:#D7DBD7; --line-3:#B7BDB7; --rule:#141414;
+  --brand:#79AE3D; --brand-hover:#648F32; --brand-deep:#4F7228; --brand-soft:#F2F7EA; --on-brand:#FFFFFF;
+  --f-display:'Poppins',system-ui,-apple-system,sans-serif; --f-body:'Work Sans',system-ui,-apple-system,sans-serif; --f-mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;
+  --eyebrow-font:var(--f-display); --eyebrow-track:0.12em; --eyebrow-size:11px; --eyebrow-color:#4F7228; --eyebrow-rule:0;
+  --h-size:24px; --h-weight:600; --h-transform:none; --h-track:-0.02em; --h-lh:1.15;
+  --r-sm:5px; --r-md:8px; --r-lg:12px; --r-pill:999px;
+  --btn-font:var(--f-display); --btn-size:16px; --btn-track:0.01em; --btn-transform:none; --btn-weight:600;
+  --primary-bg:#79AE3D; --primary-fg:#FFFFFF; --primary-shadow:0 4px 14px rgba(121,174,61,.30);
+  --card-shadow:0 1px 2px rgba(20,24,20,.06),0 2px 6px rgba(20,24,20,.05); --card-border:1px solid #E9ECE9;
+  --header-bg:#FFFFFF; --header-border:#E9ECE9; --footer-bg:#141414; --footer-fg:#FFFFFF; --footer-accent:#ABCE78;
+  --stat-bg:#F4F6F4; --stat-fg:#141414; --stat-label:#6A716A; --stat-font:var(--f-mono);
+  --status-sel-style:tint; --dot-radius:50%;
+  --pad-x:20px; --body-weight:400; --tile-radius:5px;
+}
+/* ---------- LOOK B: F1 direction ---------- */
+html[data-look="b"]{
+  --page:#F7F7F2; --card:#FFFFFF; --sunken:#F0F0EA; --text:#13150F; --body:#1A1C16; --muted:rgba(26,28,22,.62); --faint:rgba(26,28,22,.42);
+  --line:rgba(19,21,15,.12); --line-2:rgba(19,21,15,.22); --line-3:rgba(19,21,15,.35); --rule:#13150F;
+  --brand:#79AE3D; --brand-hover:#5E8A2E; --brand-deep:#5E8A2E; --brand-soft:#EEF4E4; --on-brand:#13150F;
+  --f-display:'Saira',system-ui,sans-serif; --f-body:'Work Sans',system-ui,sans-serif; --f-mono:'IBM Plex Mono',ui-monospace,monospace;
+  --eyebrow-font:var(--f-mono); --eyebrow-track:0.3em; --eyebrow-size:11px; --eyebrow-color:#5E8A2E; --eyebrow-rule:24px;
+  --h-size:32px; --h-weight:700; --h-transform:uppercase; --h-track:-0.01em; --h-lh:1;
+  --r-sm:0; --r-md:0; --r-lg:0; --r-pill:0;
+  --btn-font:var(--f-mono); --btn-size:12.5px; --btn-track:0.13em; --btn-transform:uppercase; --btn-weight:500;
+  --primary-bg:#13150F; --primary-fg:#F7F7F2; --primary-shadow:none;
+  --card-shadow:none; --card-border:0;
+  --header-bg:#F7F7F2; --header-border:rgba(19,21,15,.12); --footer-bg:#F7F7F2; --footer-fg:rgba(26,28,22,.42); --footer-accent:#13150F;
+  --stat-bg:#13150F; --stat-fg:#F7F7F2; --stat-label:rgba(247,247,242,.5); --stat-font:var(--f-display);
+  --status-sel-style:ink; --dot-radius:0;
+  --pad-x:24px; --body-weight:300; --tile-radius:0;
+}
+/* ---------- LOOK C: hybrid (B type + layout, A field ergonomics) ---------- */
+html[data-look="c"]{
+  --page:#F7F7F2; --card:#FFFFFF; --sunken:#F0F0EA; --text:#13150F; --body:#1A1C16; --muted:rgba(26,28,22,.62); --faint:rgba(26,28,22,.42);
+  --line:rgba(19,21,15,.12); --line-2:rgba(19,21,15,.22); --line-3:rgba(19,21,15,.35); --rule:#13150F;
+  --brand:#79AE3D; --brand-hover:#648F32; --brand-deep:#4F7228; --brand-soft:#EEF4E4; --on-brand:#FFFFFF;
+  --f-display:'Saira',system-ui,sans-serif; --f-body:'Work Sans',system-ui,sans-serif; --f-mono:'IBM Plex Mono',ui-monospace,monospace;
+  --eyebrow-font:var(--f-mono); --eyebrow-track:0.24em; --eyebrow-size:11px; --eyebrow-color:#4F7228; --eyebrow-rule:20px;
+  --h-size:30px; --h-weight:700; --h-transform:uppercase; --h-track:-0.01em; --h-lh:1;
+  --r-sm:3px; --r-md:4px; --r-lg:6px; --r-pill:999px;
+  --btn-font:var(--f-mono); --btn-size:13px; --btn-track:0.12em; --btn-transform:uppercase; --btn-weight:600;
+  --primary-bg:#79AE3D; --primary-fg:#FFFFFF; --primary-shadow:0 4px 14px rgba(121,174,61,.30);
+  --card-shadow:0 1px 2px rgba(20,24,20,.06),0 2px 6px rgba(20,24,20,.05); --card-border:1px solid rgba(19,21,15,.12);
+  --header-bg:#FFFFFF; --header-border:rgba(19,21,15,.12); --footer-bg:#13150F; --footer-fg:#F7F7F2; --footer-accent:#A6CC74;
+  --stat-bg:#13150F; --stat-fg:#F7F7F2; --stat-label:rgba(247,247,242,.5); --stat-font:var(--f-display);
+  --status-sel-style:tint; --dot-radius:0;
+  --pad-x:20px; --body-weight:400; --tile-radius:3px;
+}
+
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0;background:var(--page);color:var(--body);font-family:var(--f-body);font-weight:var(--body-weight);-webkit-text-size-adjust:100%;-webkit-font-smoothing:antialiased}
+body{padding-bottom:calc(96px + env(safe-area-inset-bottom))}
+.hidden{display:none !important}
+a{color:var(--brand-deep);text-decoration:none} a:hover{text-decoration:underline}
+button{font:inherit;color:inherit;cursor:pointer}
+svg.i{width:18px;height:18px;flex:0 0 auto}
+
+/* header */
+header{position:sticky;top:0;z-index:20;background:var(--header-bg);border-bottom:1px solid var(--header-border);
+  padding:calc(12px + env(safe-area-inset-top)) var(--pad-x) 12px;display:flex;align-items:center;gap:14px}
+header .title{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+header .title small{font-family:var(--f-mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);font-weight:500}
+html[data-look="a"] header .title small{font-family:var(--f-display);letter-spacing:.12em;color:var(--eyebrow-color);font-weight:600;font-size:11px}
+header .title b{font-family:var(--f-display);font-weight:600;font-size:17px;line-height:1.15;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-transform:var(--h-transform);letter-spacing:var(--h-track)}
+header button{height:42px;padding:0 16px;border-radius:var(--r-sm);background:transparent;border:1px solid var(--line-3);color:var(--text);
+  font-family:var(--btn-font);font-weight:var(--btn-weight);font-size:calc(var(--btn-size) - 1px);letter-spacing:var(--btn-track);text-transform:var(--btn-transform);white-space:nowrap}
+.progwrap{height:4px;background:var(--line)} .progbar{height:4px;background:var(--brand);width:0;transition:width .25s}
+
+/* bars */
+.netbar{display:none;font-size:14px;line-height:1.4;padding:9px var(--pad-x);align-items:center;gap:12px;border-bottom:1px solid var(--line)}
+.netbar.show{display:flex}
+.netbar.off{background:var(--caution-bg);color:var(--caution-fg)} .netbar.on{background:var(--info-bg);color:var(--info-fg)}
+html[data-look="b"] .netbar{background:var(--page);color:var(--text);font-family:var(--f-mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase}
+.netbar .grow{flex:1}
+.netbar button{height:34px;padding:0 14px;border:0;border-radius:var(--r-sm);background:var(--info);color:#fff;font-family:var(--btn-font);font-weight:var(--btn-weight);font-size:13px;letter-spacing:var(--btn-track);text-transform:var(--btn-transform)}
+html[data-look="b"] .netbar button{background:var(--primary-bg);color:var(--primary-fg)}
+.dotsq{width:8px;height:8px;background:var(--brand);display:inline-block;flex:0 0 auto}
+.netbar.off .dotsq{background:var(--caution)}
+
+/* layout */
+main{max-width:820px;margin:0 auto;padding:18px var(--pad-x)}
+.card{background:var(--card);border-radius:var(--r-md);box-shadow:var(--card-shadow);border:var(--card-border);padding:22px 22px;margin-bottom:16px}
+html[data-look="b"] .card{background:transparent;padding:10px 0 18px;border-bottom:1px solid var(--line);border-radius:0}
+.eyebrow{display:inline-flex;align-items:center;gap:12px;font-family:var(--eyebrow-font);font-weight:600;font-size:var(--eyebrow-size);letter-spacing:var(--eyebrow-track);text-transform:uppercase;color:var(--eyebrow-color);margin:0 0 8px}
+.eyebrow::before{content:"";display:inline-block;width:var(--eyebrow-rule);height:2px;background:var(--brand)}
+html[data-look="a"] .eyebrow::before{display:none}
+.eyebrow.q{color:var(--faint)} .eyebrow.q::before{background:var(--line-2)}
+.label{font-family:var(--eyebrow-font);font-weight:600;font-size:var(--eyebrow-size);letter-spacing:var(--eyebrow-track);text-transform:uppercase;color:var(--eyebrow-color);margin:18px 0 8px;display:flex;align-items:baseline;gap:8px}
+.label .cnt{font-family:var(--f-mono);color:var(--muted);font-weight:600;letter-spacing:0}
+h1.h{font-family:var(--f-display);font-weight:var(--h-weight);font-size:var(--h-size);line-height:var(--h-lh);letter-spacing:var(--h-track);text-transform:var(--h-transform);color:var(--text);margin:2px 0 10px}
+.code{font-family:var(--f-mono);font-size:13px;color:var(--muted);font-weight:500;margin-bottom:4px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.capture-txt{font-size:16px;line-height:1.55;color:var(--text);font-weight:400}
+.standard{font-size:14.5px;line-height:1.55;background:var(--sunken);border-left:3px solid var(--brand);padding:10px 12px;border-radius:0 var(--r-sm) var(--r-sm) 0;color:var(--body)}
+html[data-look="b"] .standard{background:transparent;border-left:0;padding:0;color:var(--muted)}
+.standard.advisory{background:var(--caution-bg);border-left-color:var(--caution);color:var(--caution-fg)}
+.callout{display:flex;gap:10px;align-items:flex-start;padding:12px 14px;border-radius:0 var(--r-sm) var(--r-sm) 0;border-left:3px solid var(--tone);background:var(--tone-bg);color:var(--tone-fg);font-size:14px;line-height:1.5;margin:10px 0}
+html[data-look="b"] .callout{border:1px solid var(--rule);border-left:1px solid var(--rule);background:var(--card);color:var(--text);border-radius:0}
+html[data-look="b"] .callout .sq{width:8px;height:8px;background:var(--tone);margin-top:6px;flex:0 0 auto}
+html:not([data-look="b"]) .callout .sq{display:none}
+.callout.fail{--tone:var(--fail);--tone-bg:var(--fail-bg);--tone-fg:var(--fail-fg)}
+.callout.pass{--tone:var(--pass);--tone-bg:var(--pass-bg);--tone-fg:var(--pass-fg)}
+.callout.caution{--tone:var(--caution);--tone-bg:var(--caution-bg);--tone-fg:var(--caution-fg)}
+.callout.info{--tone:var(--info);--tone-bg:var(--info-bg);--tone-fg:var(--info-fg)}
+.callout.brand{--tone:var(--brand);--tone-bg:var(--brand-soft);--tone-fg:var(--brand-deep)}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+
+/* photos */
+.photos{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:10px;margin-top:8px}
+.thumb{position:relative;aspect-ratio:1;border-radius:var(--tile-radius);overflow:hidden;background:var(--n-200);border:1px solid var(--line)}
+.thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.thumb .del{position:absolute;top:4px;right:4px;background:rgba(20,20,20,.65);color:#fff;border:0;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;padding:0}
+.thumb .del svg{width:14px;height:14px}
+.thumb .unit{position:absolute;left:4px;bottom:4px;padding:2px 6px;border-radius:3px;background:rgba(20,20,20,.7);color:#fff;font-family:var(--f-mono);font-size:10px;font-weight:600}
+.thumb .uptile{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:var(--pass-fg);background:var(--pass-bg)}
+.thumb .uptile span{font-family:var(--eyebrow-font);font-size:9px;font-weight:600;letter-spacing:.12em;text-transform:uppercase}
+.thumb .uptile.lost{color:var(--fail-fg);background:var(--fail-bg)}
+.addphoto{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:56px;
+  border:2px dashed var(--brand);color:var(--brand-deep);background:var(--brand-soft);border-radius:var(--r-sm);
+  padding:14px;font-family:var(--btn-font);font-size:var(--btn-size);font-weight:var(--btn-weight);letter-spacing:var(--btn-track);text-transform:var(--btn-transform);margin-top:8px}
+html[data-look="b"] .addphoto{border:1px solid var(--rule);background:transparent;color:var(--text)}
+input[type=file]{display:none}
+textarea,input[type=text],input[type=password]{width:100%;border:1px solid var(--line-2);border-radius:var(--r-sm);padding:12px 14px;font-size:16px;font-family:var(--f-body);font-weight:400;background:var(--card);color:var(--text)}
+textarea{min-height:72px;resize:vertical}
+textarea:focus,input:focus{outline:none;box-shadow:0 0 0 3px rgba(121,174,61,.35);border-color:var(--brand)}
+
+/* unit chips */
+.units{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+.uchip{height:40px;padding:0 14px;border-radius:var(--r-pill);border:1px solid var(--line-2);background:var(--card);color:var(--body);
+  font-family:var(--f-mono);font-weight:500;font-size:15px;display:inline-flex;align-items:center;gap:6px}
+.uchip.done{background:var(--pass-bg);border-color:var(--pass-border);color:var(--pass-fg)}
+.uchip.attn{background:var(--caution-bg);border-color:var(--caution-border);color:var(--caution-fg)}
+.uchip.cur{background:var(--rule);border-color:var(--rule);color:var(--page);font-weight:600}
+.uchip.add{border-style:dashed;color:var(--muted);font-family:var(--btn-font);font-size:12px;letter-spacing:var(--btn-track);text-transform:var(--btn-transform)}
+.uchip svg{width:14px;height:14px}
+.unithead{display:flex;align-items:center;gap:8px;margin:12px 0 4px;font-family:var(--f-mono);font-weight:600;font-size:13px;color:var(--text)}
+.unithead .ln{flex:1;height:1px;background:var(--line)} .unithead span{font-size:12px;color:var(--muted);font-weight:400;font-family:var(--f-body)}
+
+/* status */
+.statusgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}
+html[data-look="b"] .statusgrid{gap:0;border-top:1px solid var(--rule);border-left:1px solid var(--line-2)}
+.sbtn{min-height:64px;padding:12px 14px;border-radius:var(--r-sm);border:2px solid var(--line-2);background:var(--card);
+  font-size:15px;font-weight:600;color:var(--text);text-align:left;display:flex;flex-direction:column;gap:3px;font-family:var(--f-body)}
+.sbtn .row{display:flex;align-items:center;gap:8px}
+.sbtn small{font-weight:400;font-size:12px;color:var(--muted)}
+.sbtn .dot{width:10px;height:10px;border-radius:var(--dot-radius);display:inline-block;background:var(--tone);flex:0 0 auto}
+.sbtn.full{grid-column:1 / -1;min-height:52px;flex-direction:row;align-items:center}
+.sbtn.pass{--tone:var(--pass);--tone-bg:var(--pass-bg);--tone-fg:var(--pass-fg);--tone-border:var(--pass)}
+.sbtn.caution{--tone:var(--caution);--tone-bg:var(--caution-bg);--tone-fg:var(--caution-fg);--tone-border:var(--caution)}
+.sbtn.info{--tone:var(--info);--tone-bg:var(--info-bg);--tone-fg:var(--info-fg);--tone-border:var(--info)}
+.sbtn.neutral{--tone:var(--neutral);--tone-bg:var(--neutral-bg);--tone-fg:var(--neutral-fg);--tone-border:var(--n-300)}
+.sbtn.sel{border-color:var(--tone-border);background:var(--tone-bg);color:var(--tone-fg)} .sbtn.sel small{color:var(--tone-fg)}
+html[data-look="b"] .sbtn{border:0;border-right:1px solid var(--line-2);border-bottom:1px solid var(--line-2);border-radius:0;font-family:var(--f-mono);font-size:12px;letter-spacing:.13em;text-transform:uppercase;font-weight:500}
+html[data-look="b"] .sbtn small{font-family:var(--f-body);letter-spacing:0;text-transform:none}
+html[data-look="b"] .sbtn.sel{background:var(--rule);color:var(--page);font-weight:600} html[data-look="b"] .sbtn.sel small{color:rgba(247,247,242,.6)}
+html[data-look="c"] .sbtn{font-family:var(--f-mono);font-size:12.5px;letter-spacing:.1em;text-transform:uppercase}
+html[data-look="c"] .sbtn small{font-family:var(--f-body);letter-spacing:0;text-transform:none}
+.hint{font-size:13px;color:var(--faint);line-height:1.5;margin-top:8px}
+
+/* nav */
+.nav{position:sticky;bottom:calc(34px + env(safe-area-inset-bottom));z-index:15;background:var(--header-bg);border-top:1px solid var(--line);
+  display:flex;align-items:center;gap:12px;padding:10px var(--pad-x);max-width:820px;margin:0 auto}
+.nav button{flex:1;height:48px;border-radius:var(--r-sm);border:0;font-family:var(--btn-font);font-size:calc(var(--btn-size) - 1px);font-weight:var(--btn-weight);letter-spacing:var(--btn-track);text-transform:var(--btn-transform);display:flex;align-items:center;justify-content:center;gap:6px}
+.nav .prev{background:var(--sunken);color:var(--text);border:1px solid var(--line-2)}
+.nav .next{background:var(--primary-bg);color:var(--primary-fg)}
+.nav .counter{flex:0 0 auto;font-family:var(--f-mono);font-size:14px;color:var(--muted);font-weight:500;min-width:64px;text-align:center}
+.savedbar{position:fixed;left:0;right:0;bottom:0;z-index:40;background:var(--footer-bg);color:var(--footer-fg);
+  font-size:12px;font-weight:500;text-align:center;padding:7px 12px calc(7px + env(safe-area-inset-bottom));line-height:1.35;font-family:var(--f-mono);letter-spacing:.04em}
+html[data-look="b"] .savedbar{border-top:1px solid var(--line);text-transform:uppercase;letter-spacing:.14em;font-size:10.5px}
+.savedbar b{color:var(--footer-accent);font-weight:600}
+
+/* buttons */
+.btn-primary{background:var(--primary-bg);color:var(--primary-fg);border:0;height:54px;border-radius:var(--r-sm);font-family:var(--btn-font);font-size:var(--btn-size);font-weight:var(--btn-weight);letter-spacing:var(--btn-track);text-transform:var(--btn-transform);width:100%;box-shadow:var(--primary-shadow);display:flex;align-items:center;justify-content:center;gap:10px}
+.btn-ghost{background:var(--brand-soft);color:var(--brand-deep);border:0;height:48px;border-radius:var(--r-sm);font-family:var(--btn-font);font-size:calc(var(--btn-size) - 1px);font-weight:var(--btn-weight);letter-spacing:var(--btn-track);text-transform:var(--btn-transform);width:100%;display:flex;align-items:center;justify-content:center;gap:8px}
+html[data-look="b"] .btn-ghost{background:transparent;border:1px solid var(--line-2);color:var(--text)}
+.btn-danger{background:var(--card);color:var(--fail-fg);border:1px solid var(--line-2);height:44px;border-radius:var(--r-sm);font-family:var(--btn-font);font-size:calc(var(--btn-size) - 2px);font-weight:var(--btn-weight);letter-spacing:var(--btn-track);text-transform:var(--btn-transform);width:100%}
+.gap{height:12px}
+
+/* list */
+.listrow{display:flex;align-items:center;gap:14px;padding:12px 4px;border-top:1px solid var(--line);min-height:56px;width:100%;background:transparent;border-left:0;border-right:0;border-bottom:0;text-align:left}
+.listrow .n{flex:0 0 26px;text-align:right;font-family:var(--f-mono);font-size:13px;color:var(--faint);font-weight:500}
+.listrow .meta{flex:1;min-width:0}
+.listrow .meta b{display:block;font-size:15px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.listrow .meta span{font-size:12.5px;color:var(--muted)} .listrow .meta span.redo{color:var(--fail-fg)}
+.chip{flex:0 0 auto;display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 10px;border-radius:var(--r-pill);font-family:var(--eyebrow-font);font-weight:600;font-size:11px;letter-spacing:.04em;text-transform:uppercase;background:var(--tone-bg);border:1px solid var(--tone-border);color:var(--tone-fg)}
+.chip .dot{width:6px;height:6px;border-radius:var(--dot-radius);background:var(--tone)}
+.chip.pass{--tone:var(--pass);--tone-bg:var(--pass-bg);--tone-fg:var(--pass-fg);--tone-border:var(--pass-border)}
+.chip.caution{--tone:var(--caution);--tone-bg:var(--caution-bg);--tone-fg:var(--caution-fg);--tone-border:var(--caution-border)}
+.chip.info{--tone:var(--info);--tone-bg:var(--info-bg);--tone-fg:var(--info-fg);--tone-border:var(--info-border)}
+.chip.neutral,.chip.none{--tone:var(--neutral);--tone-bg:var(--neutral-bg);--tone-fg:var(--neutral-fg);--tone-border:var(--neutral-border)}
+html[data-look="b"] .chip{background:transparent;border:1px solid var(--line-2);color:var(--text);font-family:var(--f-mono)}
+.sect{display:block;font-family:var(--eyebrow-font);font-weight:600;font-size:var(--eyebrow-size);letter-spacing:var(--eyebrow-track);text-transform:uppercase;color:var(--eyebrow-color);padding:16px 0 8px}
+
+/* review */
+.summary{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:6px 0 14px}
+.stat{background:var(--stat-bg);border-radius:var(--r-sm);padding:12px 8px;text-align:center}
+.stat b{display:block;font-family:var(--stat-font);font-weight:700;font-size:24px;color:var(--stat-fg);font-variant-numeric:tabular-nums;line-height:1.1}
+.stat span{font-size:11.5px;color:var(--stat-label);display:block;margin-top:4px}
+.stat.pass b{color:var(--pass-fg)} .stat.caution b{color:var(--caution-fg)}
+html[data-look="b"] .summary,html[data-look="c"] .summary{gap:0;border-top:1px solid rgba(247,247,242,.18)}
+html[data-look="b"] .stat,html[data-look="c"] .stat{border-right:1px solid rgba(247,247,242,.14);border-radius:0;text-align:left;padding:18px 14px 14px}
+html[data-look="b"] .stat:last-child,html[data-look="c"] .stat:last-child{border-right:0}
+html[data-look="b"] .stat span,html[data-look="c"] .stat span{font-family:var(--f-mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase}
+html[data-look="b"] .stat.pass b,html[data-look="c"] .stat.pass b{color:#A6CC74} html[data-look="b"] .stat.caution b,html[data-look="c"] .stat.caution b{color:#E0A526}
+.batchbox{margin-top:16px;background:var(--brand-soft);border:1px solid var(--green-200);border-radius:var(--r-md);padding:14px 16px}
+html[data-look="b"] .batchbox,html[data-look="c"] .batchbox{background:var(--stat-bg);color:var(--stat-fg);border:0}
+.batchhead{font-family:var(--f-display);font-weight:600;font-size:14px;color:var(--brand-deep);text-transform:var(--h-transform)}
+html[data-look="b"] .batchhead,html[data-look="c"] .batchhead{color:var(--stat-fg)}
+.batchsub{font-family:var(--f-mono);font-size:12px;color:var(--muted);margin:4px 0 10px}
+html[data-look="b"] .batchsub,html[data-look="c"] .batchsub{color:rgba(247,247,242,.6)}
+.btn-batch{width:100%;background:var(--primary-bg);color:var(--primary-fg);border:0;height:48px;border-radius:var(--r-sm);font-family:var(--btn-font);font-size:calc(var(--btn-size) - 1px);font-weight:var(--btn-weight);letter-spacing:var(--btn-track);text-transform:var(--btn-transform);display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:var(--primary-shadow)}
+html[data-look="b"] .btn-batch,html[data-look="c"] .btn-batch{background:var(--brand);color:#13150F}
+.batchbox .hint{color:inherit;opacity:.75}
+.batchrow{display:flex;align-items:center;gap:12px;padding:12px 0;border-top:1px solid var(--line)}
+.batchrow .bmeta{flex:1;min-width:0}
+.batchrow .bmeta b{font-size:15px;color:var(--text)} .batchrow .bmeta b span{font-weight:400;color:var(--muted)}
+.batchrow .bmeta small{display:block;font-family:var(--f-mono);font-size:11.5px;color:var(--muted);margin-top:2px}
+.batchrow .bmeta small.ok{color:var(--pass-fg)}
+.btn-send-sm{flex:0 0 auto;background:var(--primary-bg);color:var(--primary-fg);border:0;height:40px;padding:0 16px;border-radius:var(--r-sm);font-family:var(--btn-font);font-size:13px;font-weight:var(--btn-weight);letter-spacing:var(--btn-track);text-transform:var(--btn-transform);box-shadow:var(--primary-shadow)}
+.btn-send-sm.sent{background:var(--brand-soft);color:var(--brand-deep);box-shadow:none;border:1px solid var(--line-2)}
+html[data-look="b"] .btn-send-sm.sent{background:transparent;color:var(--muted)}
+.clientitem{background:var(--info-bg);border-left:3px solid var(--info);border-radius:0 var(--r-sm) var(--r-sm) 0;padding:10px 12px;margin-bottom:8px;font-size:14px;color:var(--info-fg)}
+html[data-look="b"] .clientitem{background:var(--card);border:1px solid var(--line-2);color:var(--text)}
+.clientitem b{display:block;margin-bottom:2px}
+.banner{font-size:13px;color:var(--muted);line-height:1.5;margin-top:8px}
+.toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:12px 18px;border-radius:var(--r-sm);font-size:14px;z-index:50;opacity:0;transition:opacity .2s;pointer-events:none;max-width:90%;font-family:var(--f-body);font-weight:400}
+.toast.show{opacity:1}
+
+/* lock + load screens */
+.lock{position:fixed;inset:0;z-index:100;}
+#lockScreen{z-index:110;}
+.lock{background:var(--page);display:flex;align-items:center;justify-content:center;padding:24px}
+.lockcard{background:var(--card);border-radius:var(--r-lg);border:var(--card-border);box-shadow:var(--card-shadow);padding:30px 26px;max-width:400px;width:100%}
+html[data-look="b"] .lockcard{background:transparent;border:0;box-shadow:none;border-top:1px solid var(--rule);border-radius:0;padding:28px 0}
+.wordmark{display:flex;flex-direction:column;gap:4px;margin-bottom:18px}
+.wordmark b{font-family:var(--f-display);font-weight:700;font-size:26px;letter-spacing:-.02em;color:var(--text);line-height:1;display:flex;align-items:baseline;gap:6px}
+.wordmark b i{width:12px;height:12px;border-radius:50% 50% 50% 0;background:var(--brand);transform:rotate(-20deg);display:inline-block}
+.wordmark small{font-family:var(--f-mono);font-weight:500;font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:var(--brand-deep)}
+.lockcard h1{font-family:var(--f-display);font-weight:var(--h-weight);font-size:var(--h-size);line-height:var(--h-lh);letter-spacing:var(--h-track);text-transform:var(--h-transform);color:var(--text);margin:0 0 6px}
+.lockcard h1 em{font-style:italic;color:var(--brand-deep)} html[data-look="a"] .lockcard h1 em{font-style:normal;color:var(--text)}
+.lockcard p{color:var(--muted);font-size:15px;margin:0 0 16px;line-height:1.5}
+.lockcard input{text-align:center;letter-spacing:.2em;font-family:var(--f-mono);font-size:18px;height:52px}
+.lockcard button{margin-top:12px}
+.lockmsg{color:var(--fail-fg);font-size:13px;margin-top:10px;min-height:16px}
+.lookrow{display:flex;gap:8px;margin-top:18px;align-items:center;justify-content:center;flex-wrap:wrap}
+.lookrow span{font-family:var(--f-mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint)}
+.lookrow button{height:34px;padding:0 12px;border-radius:var(--r-sm);border:1px solid var(--line-2);background:transparent;font-family:var(--f-mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--text)}
+.lookrow button.cur{background:var(--rule);color:var(--page);border-color:var(--rule)}
+</style>
+</head>
+<body>
+
+<div id="lockScreen" class="lock">
+  <div class="lockcard">
+    <div class="wordmark"><b>ecovative<i></i></b><small>Applied Building Science</small></div>
+    <div class="eyebrow">Field capture</div>
+    <h1>Team <em>passcode</em></h1>
+    <p>Enter the EOS field passcode to open this iPad's visit.</p>
+    <p class="mono" id="lockVisit" style="font-size:12px;color:var(--faint)"></p>
+    <input id="lockInput" type="password" inputmode="text" autocomplete="off" placeholder="Passcode" onkeydown="if(event.key==='Enter')tryUnlock()">
+    <button class="btn-primary" onclick="tryUnlock()">Unlock</button>
+    <div id="lockMsg" class="lockmsg"></div>
+    <div class="lookrow"><span>Look</span><button onclick="setLook('a')" data-look-btn="a">A · System</button><button onclick="setLook('b')" data-look-btn="b">B · F1</button><button onclick="setLook('c')" data-look-btn="c">C · Hybrid</button></div>
+  </div>
+</div>
+
+<div id="loadScreen" class="lock hidden">
+  <div class="lockcard">
+    <div class="wordmark"><b>ecovative<i></i></b><small>Applied Building Science</small></div>
+    <div class="eyebrow">Field capture</div>
+    <h1 id="loadTitle">Loading visit</h1>
+    <p id="loadMsg">Fetching the visit definition…</p>
+    <div id="loadPicker"></div>
+    <button class="btn-ghost" style="margin-top:10px" onclick="location.reload()">Retry</button>
+  </div>
+</div>
+
+<header>
+  <div class="title"><small id="hsub">—</small><b id="htitle">EOS Field Capture</b></div>
+  <button id="reviewBtn" onclick="showReview()">Review &amp; Send</button>
+</header>
+<div class="progwrap"><div class="progbar" id="progbar"></div></div>
+<div class="netbar" id="netbar"></div>
+
+<!-- INTRO -->
+<main id="introScreen">
+  <div class="card">
+    <div class="eyebrow">This visit</div>
+    <h1 class="h" id="introTitle">Field walk</h1>
+    <div class="banner" id="introSub" style="margin-top:0"></div>
+    <div class="summary" id="introStats" style="grid-template-columns:repeat(3,1fr);margin-top:14px"></div>
+    <div class="label">Inspector</div>
+    <input id="inspector" type="text" placeholder="Your name" autocomplete="name">
+    <div class="label">How this works</div>
+    <div class="capture-txt" style="font-size:15px;color:var(--body)">Go through the <b id="introCount">—</b> items one at a time. For each: read what to capture, <b>take photos here</b>, add a quick note, and set the status. Everything saves on this iPad as you go — no signal needed.</div>
+    <div class="callout brand" style="margin-top:14px"><div class="sq"></div><div>Tap <b>Send</b> on any batch and it uploads straight to Dropbox — one tap, no login. Offline? It goes the moment you're back online. EOS files the photos and updates Teamwork.</div></div>
+  </div>
+  <button class="btn-primary" onclick="startWalk()">Start field walk <svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></button>
+  <div class="gap"></div>
+  <button class="btn-ghost" onclick="showList()">Jump to a specific item</button>
+  <div class="gap"></div>
+  <button class="btn-danger" onclick="newVisit()">Start a new visit (clears this iPad)</button>
+  <div class="lookrow"><span>Look</span><button onclick="setLook('a')" data-look-btn="a">A · System</button><button onclick="setLook('b')" data-look-btn="b">B · F1</button><button onclick="setLook('c')" data-look-btn="c">C · Hybrid</button></div>
+</main>
+
+<!-- ITEM -->
+<main id="itemScreen" class="hidden"><div class="card" id="itemCard"></div></main>
+<div class="nav hidden" id="itemNav">
+  <button class="prev" onclick="go(-1)"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg> Prev</button>
+  <div class="counter" id="counter">1 / 1</div>
+  <button class="next" onclick="go(1)">Next <svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button>
+</div>
+
+<!-- LIST -->
+<main id="listScreen" class="hidden">
+  <div class="card"><h1 class="h" style="font-size:22px">All items</h1><div id="listBody"></div></div>
+  <button class="btn-ghost" onclick="backFromList()">Back</button>
+</main>
+
+<!-- REVIEW -->
+<main id="reviewScreen" class="hidden">
+  <div class="card">
+    <div class="eyebrow">By the numbers</div>
+    <h1 class="h">Review &amp; send</h1>
+    <div class="summary" id="reviewSummary"></div>
+    <div id="verifyWrap"></div>
+    <div id="incompleteWrap"></div>
+    <div class="label">Send by batch (recommended)</div>
+    <div id="batchList"></div>
+    <div class="label">Client / project-team action list</div>
+    <div id="clientList"></div>
+    <div class="label">Overall site note (optional)</div>
+    <textarea id="siteNote" placeholder="Anything the office should know about this visit…"></textarea>
+  </div>
+  <button class="btn-primary" onclick="exportBundle()">Send all remaining</button>
+  <div class="banner" style="text-align:center;margin-top:6px">Sending by batch (above) is more reliable on iPad than one big send.</div>
+  <div class="gap"></div>
+  <button class="btn-ghost" onclick="downloadBundle()">Download all files instead</button>
+  <div class="gap"></div>
+  <button class="btn-ghost" onclick="hideReview()">Keep editing</button>
+  <div class="banner" style="text-align:center;margin-top:14px">Photos never leave this iPad until you tap Send. No Teamwork login needed.</div>
+</main>
+
+<div class="toast" id="toast"></div>
+<div class="savedbar" id="savedBar"></div>
+
+<script>
+/* ============================ ICONS (inline SVG, no emoji) ============================ */
+const ICO={
+  check:'<svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>',
+  warn:'<svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
+  cam:'<svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>',
+  up:'<svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 16.2A4.5 4.5 0 0 0 17.5 8h-1.8A7 7 0 1 0 4 14.9"/><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/></svg>',
+  x:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>',
+  plus:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>',
+  off:'<svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="1" y1="1" x2="23" y2="23"/><path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"/><path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"/><path d="M10.71 5.05A16 16 0 0 1 22.58 9"/><path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>'
+};
+
+/* ============================ LOOK (prototype switch) ============================ */
+function currentLook(){ const q=new URLSearchParams(location.search).get('look'); let l=q||null;
+  if(!l){ try{ l=localStorage.getItem('eos_look'); }catch(e){} } return ['a','b','c'].includes(l)?l:'a'; }
+function setLook(l){ document.documentElement.setAttribute('data-look',l); try{ localStorage.setItem('eos_look',l); }catch(e){}
+  document.querySelectorAll('[data-look-btn]').forEach(b=>b.classList.toggle('cur', b.getAttribute('data-look-btn')===l)); }
+setLook(currentLook());
+
+/* ============================ VISIT DEFINITIONS ============================
+   A visit definition is a small JSON object. Normally EOS writes it to Dropbox and the app
+   loads it by id (?visit=<id>). BUILTIN holds definitions baked into this build as a fallback. */
+const DEFAULT_STATUSES=[
+  {key:'field',  label:'Field compliant',   sub:'Verified on site',           tone:'pass',    columnId:306996, columnName:'Field Reviewed/currently compliant'},
+  {key:'attn',   label:'Needs attention',   sub:'Deficiency or follow-up',    tone:'caution', columnId:307704, columnName:'Reviewed/needs attention'},
+  {key:'later',  label:'Not installed yet', sub:'Revisit at a later stage',   tone:'info',    columnId:null,   columnName:'Not installed yet — leave in place'},
+  {key:'client', label:'Client must provide', sub:'Goes to the client action list', tone:'info', columnId:null, columnName:'Client/team to provide (flag)'},
+  {key:'na',     label:'Not applicable',    sub:'',                           tone:'neutral', columnId:308458, columnName:'Removed/de-selected', full:true}
+];
+const BUILTIN={
+ "tle-final":{
+  id:"tle-final", rev:1, program:"ECLC v2.1", stage:"Final inspection", prefix:"TLE", mode:"single", batchSize:4,
+  project:{name:"The Learning Experience — Alexandria", short:"TLE — Alexandria", address:"Alexandria, VA", projectId:1034382, programLong:"EarthCraft Light Commercial"},
+  twBase:"https://ecovativeenergy.teamwork.com/app/tasks/",
+  statuses:DEFAULT_STATUSES,
+  items:[
+ {c:"Performance Tests", code:"BE R3", ids:[38886827], t:"Envelope air-tightness (blower door) test", cap:"Blower-door test in progress: fan in the door, manometer reading, and the printed/screen result. Photograph the setup and the final ELR75 number.", std:"Requirement. Envelope air-tightness performance test must be conducted and pass per ECLC v2.1. This is the compliance test — capture the result."},
+ {c:"Performance Tests", code:"IEQ R7", ids:[38886802], t:"Third-party Test & Balance report", cap:"Photograph the T&B contractor on site and/or the completed Test & Balance report cover page (AABC or NEBB certified firm).", std:"Requirement. Third-party test and balance of the HVAC system by a certified T&B agency."},
+ {c:"Performance Tests", code:"IEQ R9", ids:[38886804], t:"Indoor air flush-out before occupancy", cap:"Evidence the flush-out is underway or complete: fans/filters set for flush-out, dated log, or contractor confirmation.", std:"Requirement. Building flushed with outside air prior to occupancy per ECLC v2.1."},
+ {c:"HVAC & IAQ", code:"IEQ R2", ids:[38886787], t:"Automatic exhaust controls", cap:"Exhaust fans installed with their automatic controls (timer / occupancy sensor). Show the control device.", std:"Requirement. Automatic shut-off controls on all exhaust when the space is unoccupied."},
+ {c:"HVAC & IAQ", code:"IEQ R3.1", ids:[38886789], t:"MERV 8+ filter installed", cap:"Installed filter with the MERV rating visible on the frame.", std:"Requirement. Minimum MERV 8 filtration installed."},
+ {c:"HVAC & IAQ", code:"IEQ 3", ids:[38886811], t:"MERV 11+ filtration (credit)", cap:"If installed to a higher grade: filter frame showing MERV 11 or higher.", std:"Credit (1 pt). MERV 11 or higher filtration media."},
+ {c:"HVAC & IAQ", code:"IEQ R3.2", ids:[38886790], t:"Outside-air intake siting", cap:"Outside-air intake location relative to roof and any contaminant sources (exhaust, dumpster, loading).", std:"Requirement. Intakes located away from contaminant sources per ECLC v2.1."},
+ {c:"HVAC & IAQ", code:"IEQ R3.4", ids:[38886792], t:"Air handler accessible & labeled", cap:"AHU access clearance and the label on each AHU / condensing unit / thermostat.", std:"Requirement. Air handler accessible and uniquely labeled."},
+ {c:"HVAC & IAQ", code:"IEQ R5", ids:[38886800], t:"Safe / sealed combustion", cap:"Any gas-fired equipment: venting and combustion-air source (sealed / direct-vent).", std:"Requirement. Sealed or direct-vent combustion with outside air; no unvented/atmospheric units."},
+ {c:"HVAC & IAQ", code:"IEQ R6", ids:[38886801], t:"Building positive pressure", cap:"Commissioning/balancing evidence the building runs at positive pressure (report or gauge).", std:"Requirement. Building designed and verified for positive pressure."},
+ {c:"HVAC & IAQ", code:"ES R5", ids:[38886854], t:"Right-sized equipment (nameplate)", cap:"Nameplate of the installed heating and cooling equipment (model + capacity) for the load cross-check.", std:"Requirement. Right-sized heating/cooling equipment or variable-capacity system."},
+ {c:"HVAC & IAQ", code:"ES 1C", ids:[38886858], t:"Cooling efficiency (credit)", cap:"Cooling equipment nameplate showing SEER/EER for the efficiency credit.", std:"Credit (3 pts). Cooling efficiency meets the ECLC v2.1 chart."},
+ {c:"HVAC & IAQ", code:"ES R4", ids:[38886853], t:"Duct system requirements", cap:"Ductwork: sealed seams (mastic), insulation, supports, no building cavities used as ducts.", std:"Requirement. Ducts sealed and insulated per ECLC v2.1."},
+ {c:"HVAC & IAQ", code:"IEQ 4A", ids:[38886813], t:"Radon test after completion (credit)", cap:"Radon test device placed / results after substantial completion.", std:"Credit (1 pt). Radon test after substantial completion."},
+ {c:"Plumbing & Water", code:"WE R1", ids:[38886725], t:"WaterSense fixtures installed", cap:"Installed lav faucets and flush valves — photograph the WaterSense label / model + flow rating on each.", std:"Requirement. WaterSense-labeled water fixtures."},
+ {c:"Plumbing & Water", code:"WE 1A", ids:[38886728], t:"High-efficiency / dual-flush toilets (credit)", cap:"Toilet label/spec showing gpf (high-efficiency or dual-flush).", std:"Credit (2 pts). High-efficiency and/or dual-flush toilets."},
+ {c:"Plumbing & Water", code:"ES 12", ids:[38886881], t:"High-efficiency water heater (credit)", cap:"Installed water heater nameplate: model + efficiency (EF/UEF).", std:"Credit (2 pts). High-efficiency water heater."},
+ {c:"Plumbing & Water", code:"DU 4D", ids:[38886784], t:"Freeze protection for pipes (credit)", cap:"Freeze protection on water pipes outside the thermal envelope (insulation / heat trace).", std:"Credit (1 pt). Freeze protection for all water pipes outside the envelope."},
+ {c:"Lighting & Energy", code:"ES 7", ids:[38886869], t:"Interior LED fixtures (credit)", cap:"Interior fixtures showing certified LED (label/spec or representative fixtures).", std:"Credit (1 pt). Interior fixtures are certified LED."},
+ {c:"Lighting & Energy", code:"ES 10", ids:[38886876], t:"Exterior LED fixtures (credit)", cap:"Exterior fixtures showing certified LED.", std:"Credit (1 pt). Exterior fixtures are certified LED."},
+ {c:"Lighting & Energy", code:"ES 8", ids:[38886871,38886872,38886873,38886874], t:"Interior lighting automatic controls (credit)", cap:"Installed lighting controls: stairwell/corridor auto-reduce, restroom/mech occupancy sensors, multi-level control and vacancy sensors in occupied spaces. Show the control devices.", std:"Credit (up to 8 pts). Automatic lighting controls per ES 8A-8D."},
+ {c:"Lighting & Energy", code:"ES 11B", ids:[38886879], t:"Curfew / after-hours exterior lighting (credit)", cap:"Exterior lighting control (curfew / after-hours shut-off).", std:"Credit (1 pt). Exterior lighting curfew control."},
+ {c:"Lighting & Energy", code:"ES 4", ids:[38886863], t:"Temperature control: occupant access (credit)", cap:"Thermostats accessible to occupants in each zone.", std:"Credit (1 pt). Occupant access to temperature controls."},
+ {c:"Lighting & Energy", code:"ES 15A", ids:[38886887], t:"ENERGY STAR appliances (credit)", cap:"Installed appliances showing the ENERGY STAR label.", std:"Credit (1 pt). 100% ENERGY STAR appliances."},
+ {c:"Lighting & Energy", code:"ES 15D", ids:[38886890], t:"Commercial food-service equipment (credit)", cap:"Kitchen/food-service equipment ENERGY STAR labels (if applicable to this daycare).", std:"Credit (1-2 pts). ENERGY STAR commercial food-service equipment."},
+ {c:"Envelope", code:"BE 3", ids:[38886832], t:"ENERGY STAR roof (credit)", cap:"Roof product label / spec sheet showing ENERGY STAR qualification, and a roof shot.", std:"Credit (2 pts). ENERGY STAR qualified roof."},
+ {c:"Envelope", code:"BE 5B", ids:[38886836], t:"Glazing SHGC — NFRC labels (credit)", cap:"Photograph each window NFRC sticker (U-factor / SHGC) before they are removed.", std:"Credit (1 pt). Weighted-average SHGC below 0.25."},
+ {c:"Envelope", code:"BE 7A", ids:[38886842], t:"Daylighting 25% floor area (credit)", cap:"Interior shots showing daylight into occupied spaces (windows/skylights serving the floor area).", std:"Credit (1 pt). Prescriptive daylighting for 25% of total floor area."},
+ {c:"Site & Exterior", code:"SP 3", ids:[38886747], t:"Exterior lighting — light pollution (credit)", cap:"Exterior fixtures showing full-cutoff / dark-sky compliant shielding.", std:"Credit (1 pt). Exterior lighting reduces light pollution."},
+ {c:"Site & Exterior", code:"SP 6.1", ids:[38886756], t:"Tree planting (credit)", cap:"Newly planted trees on site (count / caliper as visible).", std:"Credit (1 pt). Standard tree planting per lot coverage."},
+ {c:"Site & Exterior", code:"WE R2", ids:[38886726], t:"Water-efficient landscaping", cap:"Landscaping and any irrigation (or confirm no irrigation installed).", std:"Requirement. Water-efficient landscaping and irrigation."},
+ {c:"Site & Exterior", code:"SP R2", ids:[38886742], t:"Stormwater management", cap:"Installed stormwater features (bioretention, permeable areas, inlets).", std:"Requirement. Stormwater management per site plan."}
+  ]
+ },
+ "mf-demo":{
+  id:"mf-demo", rev:1, program:"EarthCraft Multifamily", stage:"Pre-drywall (demo)", prefix:"MFDEMO", mode:"units", batchSize:4,
+  units:["101","108","204","211","307","412"],
+  project:{name:"[Multifamily demo project]", short:"MF demo", address:"[Address]", projectId:null, programLong:"EarthCraft Multifamily — unit sampling demo"},
+  twBase:"https://ecovativeenergy.teamwork.com/app/tasks/",
+  statuses:DEFAULT_STATUSES,
+  items:[
+ {c:"Building Envelope", code:"BE R2", ids:[], t:"Insulation coverage — Grade I", cap:"Wall cavities with insulation fully filled, no gaps or compression; a wide shot of the room plus one close-up per wall.", std:"Requirement. Grade I insulation installation in every sampled unit."},
+ {c:"Building Envelope", code:"BE R3", ids:[], t:"Air barrier continuity", cap:"Top plates, penetrations and window rough openings sealed; show sealant at each.", std:"Requirement. Continuous air barrier at all envelope transitions."},
+ {c:"HVAC & IAQ", code:"IEQ R4.2", ids:[], t:"HVAC protected during construction", cap:"Supply/return boots covered; air handler sealed; filter in place.", std:"Requirement. Duct and equipment protection during construction."},
+ {c:"Plumbing & Water", code:"DU 4C", ids:[], t:"Cold-water pipe insulation", cap:"Insulated cold-water lines in exterior walls and unconditioned spaces.", std:"Credit. Cold-water pipe insulation."}
+  ]
+ }
+};
+
+/* ---- resolve which visit to load ---- */
+let _lastVisit=null; try{ _lastVisit=localStorage.getItem('eos_last_visit'); }catch(e){}
+const VISIT_ID=(new URLSearchParams(location.search).get('visit')||_lastVisit||'').replace(/[^a-z0-9_-]/gi,'');
+let V=null;      // the active visit definition
+let ITEMS=[], STATUSES=[], SMAP={}, BATCHES=[];
+const LOOKUP={};
+function applyVisit(v){
+  v.project=v.project||{}; v.stage=v.stage||''; v.program=v.program||''; v.prefix=sanitize(v.prefix||v.id||VISIT_ID)||'EOS'; v.twBase=v.twBase||'https://ecovativeenergy.teamwork.com/app/tasks/';
+  V=v; ITEMS=v.items; STATUSES=v.statuses||DEFAULT_STATUSES; SMAP={}; STATUSES.forEach(s=>SMAP[s.key]=s);
+  const size=v.batchSize||4, b=[];
+  for(let i=0;i<ITEMS.length;i+=size) b.push(ITEMS.map((_,k)=>k).slice(i,i+size));
+  if(b.length>1 && b[b.length-1].length<3){ const last=b.pop(); b[b.length-1]=b[b.length-1].concat(last); }
+  BATCHES=b;
+  document.title=(v.project.short||v.project.name)+' · '+v.stage;
+  document.getElementById('hsub').textContent=v.stage+' · '+v.program;
+  document.getElementById('htitle').textContent=v.project.short||v.project.name;
+  document.getElementById('introTitle').textContent=v.stage+' walk';
+  document.getElementById('introSub').textContent=(v.project.address?v.project.address+' · ':'')+(v.project.programLong||v.program);
+  document.getElementById('introCount').textContent=ITEMS.length;
+  const lp=document.getElementById('lockVisit'); if(lp) lp.textContent=(v.project.short||v.project.name||'')+' · '+v.stage;
+  try{ localStorage.setItem('eos_last_visit',VISIT_ID); }catch(e){}
+}
+function isUnits(){ return V && V.mode==='units'; }
+
+/* Try Dropbox (EOS-written definition) first, then the cached copy, then the built-in one. */
+const UNSAFE=/[\x00-\x1f'"`\\<>]/;
+function validVisit(v){
+  if(!v||typeof v!=='object'||!Array.isArray(v.items)||!v.items.length) return 'no items';
+  const seen={}; for(const it of v.items){ if(!it||!it.code||!it.t) return 'item missing code/title'; if(UNSAFE.test(String(it.code))) return 'unsafe characters in item code '+it.code; if(seen[it.code]) return 'duplicate item code '+it.code; seen[it.code]=1; }
+  if(v.statuses){ if(!Array.isArray(v.statuses)||!v.statuses.length) return 'bad statuses';
+    for(const st of v.statuses){ if(!st||!st.key||!/^[\w-]+$/.test(String(st.key))||!st.label) return 'bad status entry'; }
+    if(v.mode==='units'){ const keys=v.statuses.map(st=>st.key); if(!keys.includes('field')||!keys.includes('attn')) return 'unit sampling needs field + attn statuses'; } }
+  if(v.units){ if(!Array.isArray(v.units)) return 'bad units'; const slugs={};
+    for(const u of v.units){ if(typeof u!=='string'||!u||UNSAFE.test(u)) return 'bad unit name'; const sl=sanitize(u).toLowerCase(); if(!sl||slugs[sl]) return 'unit names collide: '+u; slugs[sl]=1; } }
+  if(v.twBase && !/^https:\/\/[a-z0-9.-]+\.teamwork\.com\//i.test(v.twBase)) return 'bad Teamwork link base';
+  return null;
+}
+function showLoadScreen(title,msg,picker){
+  const ls=document.getElementById('loadScreen'); ls.classList.remove('hidden');
+  document.getElementById('loadTitle').textContent=title; document.getElementById('loadMsg').textContent=msg;
+  const pk=document.getElementById('loadPicker'); if(!pk) return;
+  if(!picker){ pk.innerHTML=''; return; }
+  const ids=new Set(Object.keys(BUILTIN)); try{ for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); if(k&&k.startsWith('eos_visit_')) ids.add(k.slice(10)); } }catch(e){}
+  pk.innerHTML=[...ids].map(id=>{ let name=id; try{ const c=JSON.parse(localStorage.getItem('eos_visit_'+id)||'null')||BUILTIN[id]; if(c&&c.project) name=(c.project.short||c.project.name||id)+' — '+(c.stage||''); }catch(e){}
+    return `<a class="btn-ghost" style="margin-top:10px;text-decoration:none" href="?visit=${esc(id)}">${esc(name)}</a>`; }).join('');
+}
+async function loadVisit(){
+  showLoadScreen('Loading visit','Fetching the visit definition…',false);
+  if(!VISIT_ID){ showLoadScreen('Which visit?','Open the link EOS sent for this visit, or pick one saved on this iPad.',true); return false; }
+  const cacheKey='eos_visit_'+VISIT_ID;
+  let cached=null; try{ cached=JSON.parse(localStorage.getItem(cacheKey)||'null'); }catch(e){}
+  const builtin=BUILTIN[VISIT_ID]||null;
+  let local=null;
+  if(cached&&!validVisit(cached)&&builtin){ local=((+cached.rev||0)>=(+builtin.rev||0))?cached:builtin; }
+  else local=(cached&&!validVisit(cached))?cached:builtin;
+  let v=local;
+  const refresh=async()=>{ try{ const remote=await dbxReadVisit(VISIT_ID); if(remote&&!validVisit(remote)){ if((+remote.rev||0)>=(+(cached&&cached.rev)||0)){ try{ localStorage.setItem(cacheKey, JSON.stringify(remote)); }catch(e){} } return remote; } }catch(e){} return null; };
+  if(navigator.onLine){
+    if(v){ refresh(); /* background: a newer definition applies on the next launch */ }
+    else { v=await refresh(); }
+  }
+  const bad = v? validVisit(v) : 'not found';
+  if(bad){ showLoadScreen('Visit not available','No usable visit definition for "'+VISIT_ID+'" ('+bad+'). Check the link EOS sent, or pick a visit saved on this iPad.',true); return false; }
+  applyVisit(v); document.getElementById('loadScreen').classList.add('hidden'); return true;
+}
+function withTimeout(p,ms){ return new Promise((res,rej)=>{ const t=setTimeout(()=>rej(new Error('timeout')),ms); p.then(v=>{clearTimeout(t);res(v);},e=>{clearTimeout(t);rej(e);}); }); }
+async function dbxReadVisit(id){
+  // Visit definitions live in the same Dropbox app folder as the intake: /visits/<id>.json
+  const tok=await withTimeout(dbxToken(),5000); if(!tok) return null;
+  const ac=new AbortController(); const t=setTimeout(()=>ac.abort(),6000);
+  try{ const r=await fetch('https://content.dropboxapi.com/2/files/download',{method:'POST',signal:ac.signal,
+      headers:{'Authorization':'Bearer '+tok,'Dropbox-API-Arg':dbxArg({path:'/visits/'+id+'.json'})}});
+    if(!r.ok) return null; const j=await r.json(); return j; }
+  finally{ clearTimeout(t); }
+}
+
+/* ============================ STATE + STORAGE ============================ */
+let LS_KEY=null; let state=null; let idx=0; let curUnit=null;
+function blankState(){ const items={}; ITEMS.forEach(it=>{ items[it.code]={status:null,note:"",photos:[],sent:false,units:{}}; });
+  return {visit:VISIT_ID, inspector:"", siteNote:"", startedAt:new Date().toISOString(), items, batchSent:{}, extraUnits:[]}; }
+function loadState(){ try{ const s=JSON.parse(localStorage.getItem(LS_KEY)); if(s&&s.items){
+    ITEMS.forEach(it=>{ if(!s.items[it.code]) s.items[it.code]={status:null,note:"",photos:[],sent:false,units:{}};
+      else { if(s.items[it.code].sent===undefined) s.items[it.code].sent=false; if(!s.items[it.code].units) s.items[it.code].units={}; } });
+    if(!s.batchSent) s.batchSent={}; if(!s.extraUnits) s.extraUnits=[];
+    const sig=ITEMS.map(it=>it.code).join('|'); if(s.itemSig && s.itemSig!==sig){ s.batchSent={}; } s.itemSig=sig;
+    const live=new Set(ITEMS.map(it=>it.code)); let orphanPhotos=0;
+    Object.keys(s.items).forEach(c=>{ if(!live.has(c)){ if(s.items[c].photos&&s.items[c].photos.length) orphanPhotos+=s.items[c].photos.length; else delete s.items[c]; } });
+    // NOTE: items dropped from a revised definition keep their photos here (not uploadable, not evictable) until the office resolves them.
+    if(orphanPhotos) setTimeout(()=>toast(orphanPhotos+' photo'+(orphanPhotos>1?'s':'')+' belong to items no longer in this visit — tell the office'),1200);
+    return s; } }catch(e){} const b=blankState(); b.itemSig=ITEMS.map(it=>it.code).join('|'); return b; }
+function saveState(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(state)); }catch(e){ toast("Storage full — send a batch soon"); } }
+async function newVisit(){
+  if(!state||!LS_KEY) return;
+  if(!confirm('Start a NEW visit?\n\nThis clears ALL entries and photos saved on this iPad for this visit. Make sure the current visit is fully sent first.')) return;
+  try{ localStorage.removeItem(LS_KEY); }catch(e){}
+  try{ const d=await db(); await new Promise((res)=>{ const tx=d.transaction("photos","readwrite"); const st=tx.objectStore("photos");
+    const rq=st.openCursor(); rq.onsuccess=e=>{ const c=e.target.result; if(c){ if(String(c.key).startsWith(VISIT_ID+'~')) c.delete(); c.continue(); } };
+    tx.oncomplete=res; tx.onerror=res; tx.onabort=res; }); }catch(e){}
+  location.reload();
+}
+
+/* IndexedDB for photo blobs (one store shared by all visits; ids are prefixed with the visit id) */
+let _db=null;
+function db(){ return new Promise((res,rej)=>{ if(_db) return res(_db);
+  const r=indexedDB.open("eos_field",1);
+  r.onupgradeneeded=e=>{ e.target.result.createObjectStore("photos",{keyPath:"id"}); };
+  r.onsuccess=e=>{ _db=e.target.result; res(_db); }; r.onerror=e=>rej(e); });}
+async function putPhotoRaw(id, blob){ const d=await db(); return new Promise((res,rej)=>{
+  let tx; try{ tx=d.transaction("photos","readwrite"); }catch(e){ rej(e); return; }
+  tx.oncomplete=res; tx.onerror=()=>rej(tx.error||new Error('tx')); tx.onabort=()=>rej(tx.error||new Error('abort'));
+  try{ tx.objectStore("photos").put({id,blob}); }catch(e){ rej(e); } }); }
+function photoRec(code,id){ const st=state.items[code]; if(!st) return null; return st.photos.find(p=>p.id===id)||null; }
+function photoTs(id){ const m=String(id).match(/_(\d{9,})_[a-z0-9]+$/); return m?+m[1]:0; }
+function uploadedEvictable(){ const list=[];
+  ITEMS.forEach(it=>{ const st=state.items[it.code]; st.photos.forEach(p=>{ if(p.uploaded && !p.evicted) list.push({id:p.id,p:p}); }); });
+  list.sort((a,b)=>photoTs(a.id)-photoTs(b.id)); return list; }
+async function putPhoto(id, blob){
+  try{ await putPhotoRaw(id, blob); return true; }
+  catch(e){ const evictable=uploadedEvictable();
+    for(const ev of evictable){ try{ await delPhoto(ev.id); ev.p.evicted=true; }catch(_){}
+      try{ await putPhotoRaw(id, blob); return true; }catch(_){ } }
+    return false; } }
+async function getPhoto(id){ const d=await db(); return new Promise((res,rej)=>{ const tx=d.transaction("photos","readonly"); const rq=tx.objectStore("photos").get(id);
+  rq.onsuccess=()=>res(rq.result?rq.result.blob:null); rq.onerror=rej; }); }
+async function delPhoto(id){ const d=await db(); return new Promise((res,rej)=>{ const tx=d.transaction("photos","readwrite"); tx.objectStore("photos").delete(id); tx.oncomplete=res; tx.onerror=rej; }); }
+
+/* ============================ SCREEN NAV ============================ */
+const screens=["introScreen","itemScreen","listScreen","reviewScreen"];
+function show(id){ screens.forEach(s=>document.getElementById(s).classList.toggle("hidden", s!==id));
+  document.getElementById("itemNav").classList.toggle("hidden", id!=="itemScreen");
+  if(id==="introScreen") updateIntro(); window.scrollTo(0,0); }
+function startWalk(){ if(!state) return; state.inspector=document.getElementById("inspector").value.trim(); saveState(); idx=0; show("itemScreen"); render(); }
+function showList(){ if(!state) return; buildList(); show("listScreen"); }
+function backFromList(){ show("itemScreen"); render(); }
+function go(d){ const n=idx+d; if(n<0){ show("introScreen"); return;} if(n>=ITEMS.length){ showReview(); return;} idx=n; render(); }
+function jump(i){ idx=i; show("itemScreen"); render(); }
+function esc(s){ return String(s==null?"":s).replace(/[<>&"'`]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&#39;','`':'&#96;'}[c])); }
+
+/* ============================ UNITS (Multifamily sampling) ============================ */
+function unitList(){ return (V.units||[]).concat(state.extraUnits||[]); }
+function unitStatus(st,u){ return (st.units[u]&&st.units[u].status)||null; }
+function itemUnits(st){ // every unit that matters for this item: definition units + any unit with a status or a photo
+  const set=new Set(unitList()); Object.keys(st.units||{}).forEach(u=>{ if(st.units[u]&&st.units[u].status) set.add(u); });
+  (st.photos||[]).forEach(p=>{ if(p.unit) set.add(p.unit); }); return [...set];
+}
+function rollup(st){ // overall item status from its units (units mode)
+  if(st.status && st.status!=='field' && st.status!=='attn') return st.status; // item-level later/client/na wins
+  const us=itemUnits(st); if(!us.length) return st.status;
+  const vals=us.map(u=>unitStatus(st,u)).filter(Boolean);
+  if(!vals.length) return null;
+  if(vals.some(v=>v==='attn')) return 'attn';
+  if(vals.length===us.length && vals.every(v=>v==='field')) return 'field';
+  return null; // partially covered
+}
+function anyUnitSet(st){ return Object.keys(st.units||{}).some(u=>st.units[u]&&st.units[u].status); }
+function effStatus(code){ const st=state.items[code]; return isUnits()? rollup(st) : st.status; }
+function pickUnitAt(i){ const us=window._unitsNow||itemUnits(state.items[ITEMS[idx].code]); if(us[i]!=null) pickUnit(us[i]); }
+function pickUnit(u){ curUnit=u; try{ localStorage.setItem('eos_unit_'+VISIT_ID,u); }catch(e){} render(); }
+function addUnit(){ const u=prompt('Unit number to add to this visit:'); if(!u) return; const v=u.trim().replace(/[^a-z0-9-]/gi,''); if(!v) return;
+  if(!unitList().includes(v)){ state.extraUnits.push(v); ITEMS.forEach(it=>{ if(anyUnitSet(state.items[it.code])) touchItem(it.code); }); toast('Added unit '+v+' — items now need coverage in it'); }
+  saveState(); pickUnit(v); }
+
+/* ============================ RENDER ITEM ============================ */
+async function render(){
+  const it=ITEMS[idx]; const st=state.items[it.code]; const bi=batchOf(idx);
+  document.getElementById("counter").textContent=(idx+1)+" / "+ITEMS.length;
+  updateProgress();
+  const links=(it.ids||[]).map(id=>`<a href="${esc(V.twBase)}${esc(id)}" target="_blank" rel="noopener">#${esc(id)}</a>`).join(" · ");
+  const card=document.getElementById("itemCard");
+  let unitsHtml='';
+  if(isUnits()){
+    if(!curUnit){ try{ curUnit=localStorage.getItem('eos_unit_'+VISIT_ID); }catch(e){} if(!curUnit||!unitList().includes(curUnit)) curUnit=unitList()[0]||null; }
+    const us=itemUnits(st); const defn=new Set(unitList()); const done=us.filter(u=>unitStatus(st,u)).length; window._unitsNow=us;
+    unitsHtml=`<div class="label">Sampled units <span class="cnt">${done} of ${us.length} done</span></div>
+      <div class="units">${us.map((u,ui)=>{ const s=unitStatus(st,u); const cls=(u===curUnit?'cur':(s==='attn'?'attn':(s?'done':''))); const off=!defn.has(u);
+        return `<button class="uchip ${cls}" ${off?'style="border-style:dashed" title="Not in the visit definition"':''} onclick="pickUnitAt(${ui})">${s&&u!==curUnit?ICO.check:''}${esc(u)}${off?'<span style="opacity:.6;font-size:11px">extra</span>':''}</button>`; }).join('')}
+        <button class="uchip add" onclick="addUnit()">${ICO.plus} Other unit</button></div>
+      ${us.some(u=>!defn.has(u))?`<div class="hint">Units marked "extra" have photos or a status but are not in the visit definition — they still count toward this item.</div>`:''}
+      <div class="hint">Photos you take now are stamped <b class="mono">Unit ${esc(curUnit||'—')}</b>. Tap a different unit to switch.</div>`;
+  }
+  const statusTarget = isUnits()? `Status · Unit ${esc(curUnit||'—')}` : 'Set status';
+  const statusKeys = (isUnits()? ['field','attn'] : STATUSES.map(s=>s.key)).filter(k=>SMAP[k]);
+  card.innerHTML=`
+    <div class="code"><span class="eyebrow" style="margin:0">${esc(it.c)}</span><span>${esc(it.code)}${links?' · '+links:''}</span></div>
+    <h1 class="h">${esc(it.t)}</h1>
+    ${it.redo? `<div class="callout fail"><div class="sq"></div>${ICO.warn}<div><b>Re-document this item.</b> ${esc(it.redo===true?'Earlier photos for this requirement are missing. Capture it in full today.':it.redo)}</div></div>`:''}
+    ${unitsHtml}
+    <div class="label">${ICO.cam} What to capture${isUnits()?' · each sampled unit':''}</div>
+    <div class="capture-txt">${esc(it.cap)}</div>
+    <div class="label q">Standard</div>
+    <div class="standard ${it.adv?'advisory':''}">${esc(it.std)}</div>
+    <div class="label">Photos${isUnits()?' by unit':''} <span class="cnt" id="pc"></span></div>
+    <div id="photos"></div>
+    <label class="addphoto" for="fileInput">${ICO.cam} Take / add photo${isUnits()?' · Unit '+esc(curUnit||'—'):''}</label>
+    <input type="file" id="fileInput" accept="image/*" capture="environment" multiple onchange="onFiles(event)">
+    <div class="label">Note (optional)</div>
+    <textarea id="noteBox" placeholder="Observation, location, deficiency detail…" oninput="onNote(event)">${esc(st.note||"")}</textarea>
+    <div class="label">${statusTarget}</div>
+    <div class="statusgrid">${statusKeys.map(k=>sbtn(it,k)).join('')}</div>
+    ${isUnits()? `<div class="label" style="margin-top:14px">Item-level</div><div class="statusgrid">${['later','client','na'].filter(k=>SMAP[k]).map(k=>sbtn(it,k,true)).join('')}</div><div class="hint">The item's overall status rolls up from its sampled units; the office sees every unit's result and photos.</div>`:''}
+    <div class="hint">QA is set by the PM after review — not from the field.</div>
+    <div class="batchbox">
+      <div class="batchhead">Batch ${bi+1} of ${BATCHES.length} · item ${BATCHES[bi].indexOf(idx)+1} of ${BATCHES[bi].length}</div>
+      <div class="batchsub" id="batchsub"></div>
+      <button class="btn-batch" onclick="sendBatch(${bi})">${ICO.up} Send this batch to Dropbox</button>
+      <div class="hint">Tap anytime, even with no signal — it uploads the moment you're back online.</div>
+    </div>`;
+  updateBatchSub(bi);
+  await drawPhotos(it.code);
+}
+function batchOf(i){ return BATCHES.findIndex(b=>b.includes(i)); }
+function batchRange(bi){ const b=BATCHES[bi]; return (b[0]+1)+"–"+(b[b.length-1]+1); }
+function batchStats(bi){ const b=BATCHES[bi]; let set=0,photos=0,sent=0;
+  b.forEach(i=>{ const s=state.items[ITEMS[i].code]; if(effStatus(ITEMS[i].code))set++; photos+=s.photos.length; if(s.sent)sent++; });
+  return {n:b.length,set,photos,sent}; }
+function updateBatchSub(bi){ const el=document.getElementById("batchsub"); if(!el) return; const s=batchStats(bi); const done=state.batchSent[bi];
+  el.innerHTML=`${s.set}/${s.n} set · ${s.photos} photo${s.photos!==1?'s':''}`+(done?` · sent ${new Date(done).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}`:""); }
+function sbtn(it,key,itemLevel){
+  const s=SMAP[key]||{tone:'neutral',label:key,sub:''}; const st=state.items[it.code];
+  const cur = (isUnits()&&!itemLevel)? unitStatus(st,curUnit) : st.status;
+  const sel = cur===key ? "sel":"";
+  return `<button class="sbtn ${s.tone} ${sel} ${s.full?'full':''}" onclick="setStatusAt(${ITEMS.indexOf(it)},'${String(key).replace(/[^\w-]/g,'')}',${itemLevel?'true':'false'})">
+    <span class="row"><span class="dot"></span>${esc(s.label)}</span>${s.sub?`<small>${esc(s.sub)}</small>`:''}</button>`;
+}
+function setStatusAt(i,key,itemLevel){ const it=ITEMS[i]; if(!it||!SMAP[key]) return; setStatus(it.code,key,itemLevel); }
+function setStatus(code,key,itemLevel){
+  const st=state.items[code];
+  if(isUnits()&&!itemLevel){ if(!curUnit){ toast('Add a unit first'); return; } st.units[curUnit]=st.units[curUnit]||{}; st.units[curUnit].status=(st.units[curUnit].status===key?null:key); }
+  else { st.status=(st.status===key?null:key); }
+  touchItem(code); saveState(); render(); updateNetBar();
+  const eff=effStatus(code); toast(eff?("Set → "+((SMAP[eff]||{}).columnName||eff)):"Cleared");
+}
+function onNote(e){ const code=ITEMS[idx].code; state.items[code].note=e.target.value; touchItem(code); saveState(); updateNetBar(); }
+
+let _photoUrls=[];
+async function drawPhotos(code){
+  const wrap=document.getElementById("photos"); if(!wrap) return;
+  _photoUrls.forEach(u=>{ try{URL.revokeObjectURL(u);}catch(e){} }); _photoUrls=[];
+  const st=state.items[code]; wrap.innerHTML="";
+  document.getElementById("pc").textContent = st.photos.length?String(st.photos.length):"";
+  const groups={}; const order=[];
+  for(const p of st.photos){ const k=isUnits()?(p.unit||'—'):'_'; if(!groups[k]){ groups[k]=[]; order.push(k); } groups[k].push(p); }
+  for(const k of order){
+    if(isUnits()){ const h=document.createElement('div'); h.className='unithead'; h.innerHTML=`Unit ${esc(k)}<div class="ln"></div><span>${groups[k].length} photo${groups[k].length!==1?'s':''}</span>`; wrap.appendChild(h); }
+    const grid=document.createElement('div'); grid.className='photos';
+    for(const p of groups[k]){
+      const blob=await getPhoto(p.id); const d=document.createElement("div"); d.className="thumb";
+      const unitTag=isUnits()?`<div class="unit">${esc(p.unit||'—')}</div>`:'';
+      if(blob){ const url=URL.createObjectURL(blob); _photoUrls.push(url);
+        d.innerHTML=`<img src="${url}">${unitTag}<button class="del" onclick="removePhotoAt(${st.photos.indexOf(p)},'${p.id.replace(/[^\w~-]/g,'')}')">${ICO.x}</button>`; }
+      else if(p.uploaded){ d.innerHTML=`<div class="uptile">${ICO.check}<span>Uploaded</span></div>${unitTag}`; }
+      else { d.innerHTML=`<div class="uptile lost">${ICO.warn}<span>Missing</span></div><button class="del" onclick="removePhotoAt(${st.photos.indexOf(p)},'${p.id.replace(/[^\w~-]/g,'')}')">${ICO.x}</button>`; }
+      grid.appendChild(d);
+    }
+    wrap.appendChild(grid);
+  }
+}
+async function onFiles(e){
+  const files=[...e.target.files]; e.target.value="";
+  const it=ITEMS[idx]; const st=state.items[it.code]; let ok=0, fail=0;
+  const capUnit = isUnits()? curUnit : null;
+  if(isUnits()&&!capUnit){ toast('Add a unit before taking photos'); return; }
+  for(const f of files){
+    try{ const blob=await downscale(f);
+      const id=VISIT_ID+"~"+it.code.replace(/[^a-z0-9]/gi,'')+"_"+Date.now()+"_"+Math.random().toString(36).slice(2,6);
+      const stored=await putPhoto(id, blob);
+      if(stored){ const rec={id, size:blob.size, uploaded:false}; if(capUnit) rec.unit=capUnit; st.photos.push(rec); ok++; } else { fail++; }
+    }catch(err){ fail++; }
+  }
+  touchItem(it.code); saveState(); await drawPhotos(it.code); updateProgress(); updateNetBar();
+  if(fail>0){ toast(ok+" saved, "+fail+" FAILED (storage full). Send a batch to free space, then re-take."); }
+  else { toast(ok+" photo"+(ok!==1?"s":"")+" added"); }
+}
+async function removePhotoAt(i,id){ const code=ITEMS[idx].code; const p=state.items[code].photos[i]; if(!p||(id&&p.id!==id)) return; if(!confirm('Delete this photo from the iPad?')) return; await removePhoto(code,p.id); }
+async function removePhoto(code,id){ const st=state.items[code]; st.photos=st.photos.filter(p=>p.id!==id);
+  await delPhoto(id); touchItem(code); saveState(); await drawPhotos(code); updateProgress(); updateNetBar(); }
+function downscale(file){ return new Promise((res,rej)=>{ const img=new Image(); const u=URL.createObjectURL(file);
+  img.onload=()=>{ URL.revokeObjectURL(u); const max=1920; let w=img.naturalWidth,h=img.naturalHeight;
+    if(w>max||h>max){ const s=Math.min(max/w,max/h); w=Math.round(w*s); h=Math.round(h*s); }
+    const c=document.createElement("canvas"); c.width=w; c.height=h; c.getContext("2d").drawImage(img,0,0,w,h);
+    c.toBlob(b=> b?res(b):rej("noblob"), "image/jpeg", 0.82); };
+  img.onerror=()=>{URL.revokeObjectURL(u);rej("imgerr");}; img.src=u; });}
+
+/* ============================ PROGRESS + LIST ============================ */
+function isDone(code){ return !!effStatus(code); }
+function updateProgress(){ const done=ITEMS.filter(it=>isDone(it.code)).length; document.getElementById("progbar").style.width=(done/ITEMS.length*100)+"%"; }
+function chipFor(status){ if(!status) return `<span class="chip none"><span class="dot"></span>Not set</span>`; const s=SMAP[status]||{tone:'neutral',label:status}; const short={field:'Field',attn:'Attention',later:'Later',client:'Client',na:'N/A'}[status]||s.label;
+  return `<span class="chip ${s.tone}"><span class="dot"></span>${esc(short)}</span>`; }
+function buildList(){ const body=document.getElementById("listBody"); let html=""; let curSec="";
+  ITEMS.forEach((it,i)=>{ if(it.c!==curSec){ curSec=it.c; html+=`<div class="sect">${esc(it.c)}</div>`; }
+    const st=state.items[it.code]; const eff=effStatus(it.code);
+    html+=`<button class="listrow" onclick="jump(${i})"><div class="n">${i+1}</div>
+      <div class="meta"><b>${esc(it.code)} · ${esc(it.t)}</b><span class="${it.redo?'redo':''}">${it.redo?'Re-document · ':''}${st.photos.length} photo${st.photos.length!==1?'s':''}${st.note?' · note':''}</span></div>${chipFor(eff)}</button>`; });
+  body.innerHTML=html; }
+
+/* ============================ REVIEW ============================ */
+function showReview(){ if(!state) return; document.getElementById("siteNote").value=state.siteNote||""; buildReview(); renderVerify(); show("reviewScreen"); }
+async function verifyStored(){ let expected=0, present=0, uploaded=0; const lost=[];
+  for(const it of ITEMS){ const st=state.items[it.code]; for(const p of st.photos){ expected++; const blob=await getPhoto(p.id);
+    if(blob) present++; else if(p.uploaded) uploaded++; else lost.push(it.code); } }
+  return {expected, present, uploaded, lost}; }
+async function renderVerify(){ const el=document.getElementById('verifyWrap'); if(!el) return; const v=await verifyStored();
+  if(v.lost.length){ const codes=[...new Set(v.lost)].join(", ");
+    el.innerHTML=`<div class="callout fail"><div class="sq"></div>${ICO.warn}<div><b>${v.lost.length} photo${v.lost.length>1?'s':''} could not be recovered</b> on this iPad (storage filled during capture): <b>${esc(codes)}</b>. Re-take ${v.lost.length>1?'them':'it'} before you leave the site.</div></div>`; }
+  else if(v.expected){ el.innerHTML=`<div class="callout pass"><div class="sq"></div>${ICO.check}<div>All <b>${v.expected}</b> photo${v.expected!==1?'s':''} accounted for${v.uploaded?` — ${v.uploaded} already uploaded, ${v.present} on this iPad ready to send`:''}.</div></div>`; }
+  else el.innerHTML=""; }
+function hideReview(){ show("itemScreen"); render(); }
+document.getElementById("siteNote").addEventListener("input",e=>{state.siteNote=e.target.value;saveState();});
+function buildReview(){
+  const counts={}; let photos=0, none=0; ITEMS.forEach(it=>{ const st=state.items[it.code]; photos+=st.photos.length; const e=effStatus(it.code); if(e) counts[e]=(counts[e]||0)+1; else none++; });
+  document.getElementById("reviewSummary").innerHTML=`
+    <div class="stat"><b>${ITEMS.length-none}<span style="display:inline;font-size:14px;color:inherit;opacity:.5">/${ITEMS.length}</span></b><span>items set</span></div>
+    <div class="stat"><b>${photos}</b><span>photos</span></div>
+    <div class="stat pass"><b>${counts.field||0}</b><span>compliant</span></div>
+    <div class="stat caution"><b>${counts.attn||0}</b><span>attention</span></div>`;
+  const inc=ITEMS.filter(it=>!effStatus(it.code)); const iw=document.getElementById("incompleteWrap");
+  iw.innerHTML = inc.length? `<div class="callout caution"><div class="sq"></div>${ICO.warn}<div><b>${inc.length} item${inc.length>1?'s':''} not set yet:</b> ${esc(inc.map(x=>x.code).join(", "))}. You can still send — they'll show as pending.</div></div>`:"";
+  const bl=document.getElementById("batchList");
+  bl.innerHTML = BATCHES.map((b,bi)=>{ const s=batchStats(bi); const sent=state.batchSent[bi]; const codes=b.map(i=>ITEMS[i].code).join(", ");
+    return `<div class="batchrow"><div class="bmeta"><b>Batch ${bi+1} <span>· items ${batchRange(bi)}</span></b><small>${esc(codes)}</small>
+      <small class="${sent?'ok':''}">${s.set}/${s.n} set · ${s.photos} photo${s.photos!==1?'s':''}${sent?' · sent '+new Date(sent).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}):''}</small></div>
+      <button class="btn-send-sm ${sent?'sent':''}" onclick="sendBatch(${bi})">${sent?'Re-send':'Send'}</button></div>`; }).join("");
+  const cl=ITEMS.filter(it=>effStatus(it.code)==="client"); const clBox=document.getElementById("clientList");
+  clBox.innerHTML = cl.length? cl.map(it=>`<div class="clientitem"><b>${esc(it.code)} · ${esc(it.t)}</b>${state.items[it.code].note?esc(state.items[it.code].note):""}</div>`).join("") : `<div class="banner">No client-provided items flagged yet.</div>`;
+}
+
+/* ============================ EXPORT (loose files → Dropbox) ============================ */
+function sanitize(s){ return String(s||'').replace(/[^a-z0-9]+/gi,'-').replace(/^-|-$/g,''); }
+async function buildBundleFiles(subset, meta){
+  subset=subset||ITEMS; meta=meta||{partial:false,label:"full"};
+  const stamp=new Date(); const dateStr=stamp.toISOString().slice(0,10);
+  const bundleId=stamp.getTime().toString(36)+"-"+Math.random().toString(36).slice(2,8);
+  const prefix=`${V.prefix}_${dateStr}_${sanitize(meta.label)}_${bundleId}__`;
+  const SLABEL={field:'COMPLIANT',attn:'NEEDS-ATTN',later:'NOT-INSTALLED',client:'CLIENT-PROVIDE',na:'N-A'};
+  const shareFiles=[]; const manifestItems=[]; const clientActions=[]; let missing=0;
+  for(const it of subset){
+    const gidx=ITEMS.indexOf(it)+1; const st=state.items[it.code]; const eff=effStatus(it.code);
+    const stLabel=SLABEL[eff]||'UNSET'; const titleSlug=sanitize(it.t).slice(0,40);
+    const photoNames=[]; let k=0, carried=0; const perUnit={};
+    for(const p of st.photos){ const blob=await getPhoto(p.id);
+      if(!blob){ if(p.uploaded) carried++; else missing++; continue; } k++; if(p.unit) perUnit[p.unit]=(perUnit[p.unit]||0)+1;
+      const unitPart=isUnits()?`_U${sanitize(p.unit)||'na'}`:'';
+      const pLabel=isUnits()? (SLABEL[unitStatus(st,p.unit)]||stLabel) : stLabel;
+      const fname=`${String(gidx).padStart(2,'0')}_${sanitize(it.code)}${unitPart}_${pLabel}_${titleSlug}__${dateStr}_${bundleId}-${k}.jpg`;
+      const file=new File([blob], fname, {type:"image/jpeg"}); file._ref={code:it.code,id:p.id}; shareFiles.push(file); photoNames.push(fname); }
+    const col=eff?SMAP[eff]:null;
+    const rec={order:gidx, code:it.code, title:it.t, section:it.c, taskIds:it.ids||[], taskLinks:(it.ids||[]).map(id=>V.twBase+id),
+      status:eff||"unset", statusUnknownToDefinition: !!(eff&&!col), targetColumn:col?col.columnName:null, targetColumnId:col?col.columnId:null,
+      note:st.note||"", photos:photoNames, photosCarriedFromEarlierSend:carried, advisory:!!it.adv, redocument:!!it.redo};
+    if(isUnits()){ rec.units={}; const defn=new Set(unitList()); itemUnits(st).forEach(u=>{ const s=unitStatus(st,u); const inBundle=perUnit[u]||0; const total=st.photos.filter(p=>p.unit===u).length; if(s||total) rec.units[u]={status:s||'unset', photosInThisBundle:inBundle, photosTotal:total, offDefinition:!defn.has(u)}; }); }
+    manifestItems.push(rec); if(eff==="client") clientActions.push(rec);
+  }
+  const columnMap={}; STATUSES.forEach(s=>columnMap[s.key]={id:s.columnId,name:s.columnName});
+  const manifest={ bundleId, visitId:VISIT_ID, project:V.project, program:V.program, mode:V.mode||'single', inspector:state.inspector||"", visitStage:V.stage,
+    generatedAt:stamp.toISOString(), siteNote:state.siteNote||"", photosMissing:missing, filePrefix:prefix,
+    bundle:{partial:meta.partial,label:meta.label,itemCodes:subset.map(x=>x.code),totalItems:ITEMS.length},
+    dedupeRule:"If a later bundle repeats an item already posted, REPLACE that item's comment/status and ADD its new photos. Later generatedAt wins. Photo files are uniquely named. Never delete photos already uploaded for an item in an earlier bundle — if photosCarriedFromEarlierSend > 0, that item has additional photos in this intake folder from a prior batch that are NOT re-listed here; keep them.",
+    columnMap, items:manifestItems, clientActions };
+  shareFiles.unshift(new File([JSON.stringify(manifest,null,2)], `${prefix}manifest.json`, {type:"application/json"}));
+  shareFiles.splice(1,0,new File([buildReport(manifest)], `${prefix}REPORT.md`, {type:"text/markdown"}));
+  return {shareFiles, missing, count:shareFiles.length};
+}
+function buildReport(m){
+  let s=`# ${m.project.name} — ${m.visitStage} Field Report\n\n**Project:** ${m.project.name}${m.project.address?' — '+m.project.address:''}\n**Program:** ${m.program}${m.mode==='units'?' (unit sampling)':''}\n`;
+  s+=`**Stage:** ${m.visitStage}\n**Inspector:** ${m.inspector||"—"}\n**Captured:** ${m.generatedAt}\n**Bundle ID:** ${m.bundleId}\n`;
+  s+=`**Bundle:** ${m.bundle.partial?("PARTIAL — "+m.bundle.label+" ("+m.bundle.itemCodes.length+" of "+m.bundle.totalItems+" items: "+m.bundle.itemCodes.join(", ")+")"):"FULL — all items"}\n\n`;
+  if(m.bundle.partial) s+=`> Partial batch. Merge with the other batches from this visit (dedupe by task ID) before finalizing.\n\n`;
+  if(m.siteNote) s+=`**Site note:** ${m.siteNote}\n\n`;
+  s+=`---\n\nEOS: for each item, post a Teamwork comment (note + status) with the listed photos linked, then move the task(s) to the target column. Client-flagged items are NOT moved — add them to the client action list. If a later bundle repeats an item, the later one supersedes.\n\n`;
+  let sec=""; m.items.forEach(it=>{ if(it.section!==sec){ sec=it.section; s+=`\n## ${sec}\n`; }
+    s+=`\n### ${it.order}. ${it.code} — ${it.title}${it.redocument?'  ⟵ RE-DOCUMENT':''}\n- Tasks: ${it.taskIds.length?it.taskIds.map(id=>"#"+id).join(", "):'—'}\n`;
+    s+=`- Status: **${it.status}**${it.targetColumnId?(" → move to **"+it.targetColumn+"**"):(it.status==="client"?" → FLAG ONLY (client action list; do not move)":(it.status==="later"?" → LEAVE IN PLACE (not installed yet)":""))}\n`;
+    if(it.units){ s+=`- Units: ${Object.entries(it.units).map(([u,x])=>`${u}=${x.status} (${x.photosInThisBundle} photo${x.photosInThisBundle!==1?'s':''} here${x.offDefinition?', not in visit definition':''})`).join("; ")||'none'}\n`; }
+    s+=`- Photos: ${it.photos.length? it.photos.join(", "):"none"}\n`; if(it.note) s+=`- Note: ${it.note}\n`; });
+  return s;
+}
+let _uploading=false;
+async function shipBundle(subset, meta, onSent){
+  if(_uploading) return false; _uploading=true; toast("Preparing…");
+  try{ const {shareFiles, missing}=await buildBundleFiles(subset, meta);
+    if(!navigator.onLine){ toast("Offline — saved on iPad; uploads when back online"); return false; }
+    try{ toast("Uploading "+shareFiles.length+" files…");
+      const ordered=shareFiles.filter(f=>f._ref).concat(shareFiles.filter(f=>!f._ref)); // photos first, manifest + report last
+      for(const f of ordered){ await dbxUpload(f); if(f._ref){ const rp=photoRec(f._ref.code,f._ref.id); if(rp){ rp.uploaded=true; saveState(); } } }
+      saveState(); toast(missing? ("Uploaded — "+missing+" photo"+(missing>1?"s":"")+" LOST on iPad, re-take before leaving") : ("Uploaded to Dropbox"));
+      if(onSent)onSent(); return true;
+    }catch(e){ toast("Upload didn't finish — tap Send again when you have signal"); return false; }
+  }catch(e){ toast("Send error — try again"); return false; } finally{ _uploading=false; }
+}
+async function sendBatch(bi){ const subset=BATCHES[bi].map(i=>ITEMS[i]);
+  const ok=await shipBundle(subset,{partial:true,label:"batch"+(bi+1)},()=>{ state.batchSent[bi]=new Date().toISOString(); BATCHES[bi].forEach(i=>{ state.items[ITEMS[i].code].sent=true; }); saveState(); });
+  if(ok){ updateBatchSub(bi); updateNetBar(); if(!document.getElementById('reviewScreen').classList.contains('hidden')){ buildReview(); renderVerify(); } } }
+async function exportBundle(){ const subset=pendingItems(); if(!subset.length){ toast("Nothing left to send"); return; }
+  const ok=await shipBundle(subset,{partial:true,label:"all-unsent"},()=>{ subset.forEach(it=>{ state.items[it.code].sent=true; }); markBatchesSent(); saveState(); buildReview(); renderVerify(); updateNetBar(); });
+  if(!ok){ updateNetBar(); buildReview(); renderVerify(); } }
+async function downloadBundle(){ toast("Packaging…"); try{ const {shareFiles}=await buildBundleFiles(ITEMS,{partial:false,label:"full"}); shareFiles.forEach(f=>saveBlob(f,f.name)); toast("Downloaded "+shareFiles.length+" files"); }catch(e){ toast("Export error"); } }
+function saveBlob(blob,name){ const url=URL.createObjectURL(blob); const a=document.createElement("a"); a.href=url; a.download=name; document.body.appendChild(a); a.click(); setTimeout(()=>{a.remove();URL.revokeObjectURL(url);},4000); }
+
+/* ============================ MISC ============================ */
+let _tt; function toast(msg){ const t=document.getElementById("toast"); t.textContent=msg; t.classList.add("show"); clearTimeout(_tt); _tt=setTimeout(()=>t.classList.remove("show"),1800); }
+function hasContent(code){ const s=state.items[code]; return !!(effStatus(code)||s.photos.length>0||(isUnits()&&anyUnitSet(s))||s.note); }
+function pendingItems(){ return ITEMS.filter(it=>hasContent(it.code) && !state.items[it.code].sent); }
+function touchItem(code){ const st=state.items[code]; if(st.sent){ st.sent=false; const bi=BATCHES.findIndex(b=>b.some(i=>ITEMS[i].code===code)); if(bi>=0) delete state.batchSent[bi]; } }
+function markBatchesSent(){ BATCHES.forEach((b,bi)=>{ const content=b.filter(i=>hasContent(ITEMS[i].code));
+  if(content.length && content.every(i=>state.items[ITEMS[i].code].sent) && !state.batchSent[bi]) state.batchSent[bi]=new Date().toISOString(); }); }
+function updateNetBar(){ updateSavedInfo(); const bar=document.getElementById('netbar'); if(!bar) return; const pend=pendingItems().length;
+  if(!navigator.onLine){ bar.className='netbar off show'; bar.innerHTML=ICO.off+'<span class="dotsq"></span><div class="grow">Offline — everything is saved on this iPad.'+(pend?(' <b class="mono">'+pend+'</b> item'+(pend>1?'s':'')+' will send when you are back online.'):'')+'</div>'; }
+  else if(pend>0){ bar.className='netbar on show'; bar.innerHTML='<span class="dotsq"></span><div class="grow">Online · <b class="mono">'+pend+'</b> item'+(pend>1?'s':'')+' not yet sent</div><button onclick="uploadPending()">Send now</button>'; }
+  else { bar.className='netbar'; } }
+async function uploadPending(){ const subset=pendingItems(); if(!subset.length){ toast('Nothing pending'); return; }
+  await shipBundle(subset,{partial:true,label:'pending'},()=>{ subset.forEach(it=>{ state.items[it.code].sent=true; }); markBatchesSent(); saveState(); updateNetBar();
+    if(!document.getElementById('reviewScreen').classList.contains('hidden')){ buildReview(); renderVerify(); } }); }
+function updateSavedInfo(){ const el=document.getElementById('savedBar'); if(!el||!state) return; let set=0, ph=0, sent=0; ITEMS.forEach(it=>{ const s=state.items[it.code]; if(effStatus(it.code))set++; ph+=s.photos.length; if(s.sent)sent++; });
+  el.innerHTML='Saved on this iPad · <b>'+set+'</b>/'+ITEMS.length+' set · <b>'+ph+'</b> photo'+(ph!==1?'s':'')+(sent?(' · <b>'+sent+'</b> sent'):''); }
+function updateIntro(){ let set=0, ph=0; ITEMS.forEach(it=>{ const s=state.items[it.code]; if(effStatus(it.code))set++; ph+=s.photos.length; });
+  document.getElementById('introStats').innerHTML=`<div class="stat"><b>${ITEMS.length}</b><span>items to capture</span></div><div class="stat"><b>${set}</b><span>set so far</span></div><div class="stat"><b>${ph}</b><span>photos on iPad</span></div>`;
+  updateSavedInfo(); }
+window.addEventListener('online', async ()=>{ updateNetBar(); if(pendingItems().length){ toast('Back online — uploading pending…'); try{ await uploadPending(); }catch(e){} } });
+window.addEventListener('offline', updateNetBar);
+
+/* ---- Dropbox direct upload (write-only, App folder) ----
+   CENTRAL INTAKE: every field device uploads to ONE shared account's Apps/EOS Field Intake folder,
+   which EOS reads. The built-in refresh token is scoped to that single app folder only. */
+const DBX_APP_KEY="5zazkrif192i4ct";
+const DBX_REFRESH="Ewg7-tZHcJ0AAAAAAAAAAUJm94jDEcAhM6SYfp4ZC8NubJpabMEO3FG7Oev5x4YH";
+try{ if(localStorage.getItem('dbx_mode')!=='central'){ ['dbx_refresh','dbx_access','dbx_exp','dbx_pv','dbx_pc','dbx_verifier'].forEach(function(k){ localStorage.removeItem(k); }); localStorage.setItem('dbx_mode','central'); } }catch(_){ }
+async function dbxToken(){
+  const acc=localStorage.getItem('dbx_access'); const exp=+(localStorage.getItem('dbx_exp')||0);
+  if(acc && Date.now()<exp-60000) return acc;
+  let j={}; try{ const r=await fetch('https://api.dropboxapi.com/oauth2/token',{method:'POST', body:new URLSearchParams({grant_type:'refresh_token', refresh_token:DBX_REFRESH, client_id:DBX_APP_KEY})}); j=await r.json(); }catch(e){ return null; }
+  if(j.access_token){ localStorage.setItem('dbx_access', j.access_token); localStorage.setItem('dbx_exp', String(Date.now()+((j.expires_in||14400)*1000))); return j.access_token; }
+  localStorage.removeItem('dbx_access'); localStorage.removeItem('dbx_exp'); return null;
+}
+function dbxArg(o){ return JSON.stringify(o).replace(/[-￿]/g, c=>'\\u'+c.charCodeAt(0).toString(16).padStart(4,'0')); }
+async function dbxUpload(file){ const tok=await dbxToken(); if(!tok) throw new Error('not connected');
+  const arg={path:'/'+file.name, mode:'add', autorename:true, mute:true};
+  const r=await fetch('https://content.dropboxapi.com/2/files/upload',{method:'POST', headers:{'Authorization':'Bearer '+tok,'Dropbox-API-Arg':dbxArg(arg),'Content-Type':'application/octet-stream'}, body: await file.arrayBuffer()});
+  if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); }
+
+/* ============================ PASSCODE + BOOT ============================ */
+const PASSCODE="ECOVATE";   /* one shared passcode for every EOS visit */
+function tryUnlock(){ const el=document.getElementById('lockInput'); const v=(el.value||'').trim();
+  if(v.toUpperCase()===PASSCODE){ try{localStorage.setItem('eos_unlocked','1');}catch(e){} document.getElementById('lockScreen').classList.add('hidden'); el.value=''; }
+  else { document.getElementById('lockMsg').textContent='Incorrect passcode'; } }
+try{ if(localStorage.getItem('eos_unlocked')==='1') document.getElementById('lockScreen').classList.add('hidden'); }catch(e){}
+
+(async function boot(){
+  const ok=await loadVisit(); if(!ok) return;
+  LS_KEY="eos_state_"+VISIT_ID; state=loadState();
+  document.getElementById("inspector").value=state.inspector||"";
+  updateProgress(); updateNetBar(); updateIntro();
+})();
+</script>
+</body>
+</html>

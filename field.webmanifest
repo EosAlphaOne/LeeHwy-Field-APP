@@ -1,0 +1,14 @@
+{
+  "name": "EOS Field Capture",
+  "short_name": "EOS Field",
+  "start_url": "./field.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#FAFBFA",
+  "theme_color": "#79AE3D",
+  "icons": [
+    {"src": "field-icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable"},
+    {"src": "field-icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable"}
+  ]
+}
