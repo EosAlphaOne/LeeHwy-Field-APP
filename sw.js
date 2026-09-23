@@ -3,8 +3,12 @@
    v3 (2026-09-02): + field.html (EOS shell). v2: pre-cache both app pages at install (falling back to any older cached copy, and failing
    install — which keeps the previous worker — if a page cannot be obtained at all); page-aware offline
    fallback (never serve one app under the other's URL); never cache non-OK or redirected responses;
-   purge old caches only once the new cache is complete. */
-const CACHE='leehwy-app-v3';
+   purge old caches only once the new cache is complete.
+   v4 (2026-09-22): cache each page under its path only (query string dropped), so "field.html?visit=a" and
+   "field.html?visit=b" can never leave an older copy of the app that an offline relaunch picks up; offline lookup
+   tries this cache's exact path entry first. New cache name also purges v3's stale query-variant entries. */
+const CACHE='leehwy-app-v4';
+function pathKey(url){ return url.origin+url.pathname; }
 const PRECACHE=['./index.html','./tle-alexandria.html','./field.html'];
 self.addEventListener('install', function(e){
   e.waitUntil(
@@ -55,11 +59,12 @@ self.addEventListener('fetch', function(e){
   e.respondWith(
     fetch(req).then(function(resp){
       if(resp && resp.ok && resp.type==='basic' && !resp.redirected){
-        try{ var cp=resp.clone(); caches.open(CACHE).then(function(c){ return c.put(req, cp); }).catch(function(){}); }catch(_){}
+        try{ var cp=resp.clone(); caches.open(CACHE).then(function(c){ return c.put(pathKey(url), cp); }).catch(function(){}); }catch(_){}
       }
       return resp;
     }).catch(function(){
-      return caches.match(req, {ignoreSearch:true, ignoreVary:true}).then(function(r){
+      return caches.open(CACHE).then(function(c){ return c.match(pathKey(url),{ignoreVary:true}); }).catch(function(){ return undefined; }).then(function(hit){
+        return hit || caches.match(req, {ignoreSearch:true, ignoreVary:true}); }).then(function(r){
         if(r) return r;
         if(req.mode==='navigate'){
           return caches.match(fallbackPage(url),{ignoreSearch:true,ignoreVary:true}).then(function(p){ return p || offlineResponse(); });
